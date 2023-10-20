@@ -1,132 +1,192 @@
-# wxcloudrun-thinkphp
-[![GitHub license](https://img.shields.io/github/license/WeixinCloud/wxcloudrun-express)](https://github.com/WeixinCloud/wxcloudrun-express)
-![GitHub package.json dependency version (prod)](https://img.shields.io/badge/php-7.3-green)
+![](https://box.kancloud.cn/5a0aaa69a5ff42657b5c4715f3d49221) 
 
-微信云托管 Thinkphp 框架模版，实现简单的计数器读写接口，使用云托管 MySQL 读写、记录计数值。
+ThinkPHP 5.1（LTS版本） —— 12载初心，你值得信赖的PHP框架
+===============
 
-![](https://qcloudimg.tencent-cloud.cn/raw/be22992d297d1b9a1a5365e606276781.png)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/top-think/framework/badges/quality-score.png?b=5.1)](https://scrutinizer-ci.com/g/top-think/framework/?branch=5.1)
+[![Build Status](https://travis-ci.org/top-think/framework.svg?branch=master)](https://travis-ci.org/top-think/framework)
+[![Total Downloads](https://poser.pugx.org/topthink/framework/downloads)](https://packagist.org/packages/topthink/framework)
+[![Latest Stable Version](https://poser.pugx.org/topthink/framework/v/stable)](https://packagist.org/packages/topthink/framework)
+[![PHP Version](https://img.shields.io/badge/php-%3E%3D5.6-8892BF.svg)](http://www.php.net/)
+[![License](https://poser.pugx.org/topthink/framework/license)](https://packagist.org/packages/topthink/framework)
+
+//
+{$Think.cookie.id}
+{$request.cookie.id}
+//
+{:I('get.cate_id')}
+
+ThinkPHP5.1对底层架构做了进一步的改进，减少依赖，其主要特性包括：
+
+ + 采用容器统一管理对象
+ + 支持Facade
+ + 注解路由支持
+ + 路由跨域请求支持
+ + 配置和路由目录独立
+ + 取消系统常量
+ + 助手函数增强
+ + 类库别名机制
+ + 增加条件查询
+ + 改进查询机制
+ + 配置采用二级
+ + 依赖注入完善
+ + 支持`PSR-3`日志规范
+ + 中间件支持（V5.1.6+）
+ + Swoole/Workerman支持（V5.1.18+）
 
 
-## 快速开始
-前往 [微信云托管快速开始页面](https://developers.weixin.qq.com/miniprogram/dev/wxcloudrun/src/basic/guide.html)，选择相应语言的模板，根据引导完成部署。
+> ThinkPHP5的运行环境要求PHP5.6以上，兼容PHP8.0。
 
-## 本地调试
-下载代码在本地调试，请参考[微信云托管本地调试指南](https://developers.weixin.qq.com/miniprogram/dev/wxcloudrun/src/guide/debug/)
+## 安装
 
-## 实时开发
-代码变动时，不需要重新构建和启动容器，即可查看变动后的效果。请参考[微信云托管实时开发指南](https://developers.weixin.qq.com/miniprogram/dev/wxcloudrun/src/guide/debug/dev.html)
+使用composer安装
 
-## Dockerfile最佳实践
-请参考[如何提高项目构建效率](https://developers.weixin.qq.com/miniprogram/dev/wxcloudrun/src/scene/build/speed.html)
-
-
-## 目录结构说明
 ~~~
-.
-├── Dockerfile                  Dockerfile 文件
-├── README.md                   README 文件
-├── app                         应用目录
-│   ├── controller              控制器目录
-│   ├── model                   模型目录
-│   └── view                    视图目录
-├── conf                        配置文件
-│   ├── fpm.conf                fpm 配置
-│   ├── nginx.conf              nginx 配置
-│   └── php.ini                 php 配置
-├── config                      thinkphp 配置
-├── container.config.json       模板部署「服务设置」初始化配置（二开请忽略）
-├── public                      WEB目录（对外访问目录）
-│   ├── favicon.ico             图标
-│   ├── index.php               入口文件       
-│   └── router.php              快速测试文件 
-├── route                       路由文件			
-│   └── app.php                 定义应用路由
-├── run.sh                      nginx、fpm 启动
-├── runtime                     应用的运行时目录（可写，可定制）
-├── think                       命令行入口文件
-└── vendor                      第三方类库目录
+composer create-project topthink/think tp
 ~~~
 
+启动服务
 
-## 服务 API 文档
+~~~
+cd tp
+php think run
+~~~
 
-### `GET /api/count`
+然后就可以在浏览器中访问
 
-获取当前计数
+~~~
+http://localhost:8000
+~~~
 
-#### 请求参数
-
-无
-
-#### 响应结果
-
-- `code`：错误码
-- `data`：当前计数值
-
-##### 响应结果示例
-
-```json
-{
-  "code": 0,
-  "data": 42
-}
-```
-
-#### 调用示例
-
-```
-curl https://<云托管服务域名>/api/count
-```
+更新框架
+~~~
+composer update topthink/framework
+~~~
 
 
+## 在线手册
 
-### `POST /api/count`
-
-更新计数，自增或者清零
-
-#### 请求参数
-
-- `action`：`string` 类型，枚举值
-  - 等于 `"inc"` 时，表示计数加一
-  - 等于 `"clear"` 时，表示计数重置（清零）
-
-##### 请求参数示例
-
-```
-{
-  "action": "inc"
-}
-```
-
-#### 响应结果
-
-- `code`：错误码
-- `data`：当前计数值
-
-##### 响应结果示例
-
-```json
-{
-  "code": 0,
-  "data": 42
-}
-```
-
-#### 调用示例
-
-```
-curl -X POST -H 'content-type: application/json' -d '{"action": "inc"}' https://<云托管服务域名>/api/count
-```
-
-## 使用注意
-如果不是通过微信云托管控制台部署模板代码，而是自行复制/下载模板代码后，手动新建一个服务并部署，需要在「服务设置」中补全以下环境变量，才可正常使用，否则会引发无法连接数据库，进而导致部署失败。
-- MYSQL_ADDRESS
-- MYSQL_PASSWORD
-- MYSQL_USERNAME
-以上三个变量的值请按实际情况填写。如果使用云托管内MySQL，可以在控制台MySQL页面获取相关信息。
++ [完全开发手册](https://www.kancloud.cn/manual/thinkphp5_1/content)
++ [升级指导](https://www.kancloud.cn/manual/thinkphp5_1/354155) 
 
 
+## 官方服务
 
-## License
++ [应用服务市场](https://market.topthink.com/)
++ [ThinkAPI——统一API服务](https://docs.topthink.com/think-api) 
 
-[MIT](./LICENSE)
+## 目录结构
+
+初始的目录结构如下：
+
+~~~
+www  WEB部署目录（或者子目录）
+├─application           应用目录
+│  ├─common             公共模块目录（可以更改）
+│  ├─module_name        模块目录
+│  │  ├─common.php      模块函数文件
+│  │  ├─controller      控制器目录
+│  │  ├─model           模型目录
+│  │  ├─view            视图目录
+│  │  └─ ...            更多类库目录
+│  │
+│  ├─command.php        命令行定义文件
+│  ├─common.php         公共函数文件
+│  └─tags.php           应用行为扩展定义文件
+│
+├─config                应用配置目录
+│  ├─module_name        模块配置目录
+│  │  ├─database.php    数据库配置
+│  │  ├─cache           缓存配置
+│  │  └─ ...            
+│  │
+│  ├─app.php            应用配置
+│  ├─cache.php          缓存配置
+│  ├─cookie.php         Cookie配置
+│  ├─database.php       数据库配置
+│  ├─log.php            日志配置
+│  ├─session.php        Session配置
+│  ├─template.php       模板引擎配置
+│  └─trace.php          Trace配置
+│
+├─route                 路由定义目录
+│  ├─route.php          路由定义
+│  └─...                更多
+│
+├─public                WEB目录（对外访问目录）
+│  ├─index.php          入口文件
+│  ├─router.php         快速测试文件
+│  └─.htaccess          用于apache的重写
+│
+├─thinkphp              框架系统目录
+│  ├─lang               语言文件目录
+│  ├─library            框架类库目录
+│  │  ├─think           Think类库包目录
+│  │  └─traits          系统Trait目录
+│  │
+│  ├─tpl                系统模板目录
+│  ├─base.php           基础定义文件
+│  ├─console.php        控制台入口文件
+│  ├─convention.php     框架惯例配置文件
+│  ├─helper.php         助手函数文件
+│  ├─phpunit.xml        phpunit配置文件
+│  └─start.php          框架入口文件
+│
+├─extend                扩展类库目录
+├─runtime               应用的运行时目录（可写，可定制）
+├─vendor                第三方类库目录（Composer依赖库）
+├─build.php             自动生成定义文件（参考）
+├─composer.json         composer 定义文件
+├─LICENSE.txt           授权说明文件
+├─README.md             README 文件
+├─think                 命令行入口文件
+~~~
+
+> 可以使用php自带webserver快速测试
+> 切换到根目录后，启动命令：php think run
+
+## 命名规范
+
+`ThinkPHP5`遵循PSR-2命名规范和PSR-4自动加载规范，并且注意如下规范：
+
+### 目录和文件
+
+*   目录不强制规范，驼峰和小写+下划线模式均支持；
+*   类库、函数文件统一以`.php`为后缀；
+*   类的文件名均以命名空间定义，并且命名空间的路径和类库文件所在路径一致；
+*   类名和类文件名保持一致，统一采用驼峰法命名（首字母大写）；
+
+### 函数和类、属性命名
+
+*   类的命名采用驼峰法，并且首字母大写，例如 `User`、`UserType`，默认不需要添加后缀，例如`UserController`应该直接命名为`User`；
+*   函数的命名使用小写字母和下划线（小写字母开头）的方式，例如 `get_client_ip`；
+*   方法的命名使用驼峰法，并且首字母小写，例如 `getUserName`；
+*   属性的命名使用驼峰法，并且首字母小写，例如 `tableName`、`instance`；
+*   以双下划线“__”打头的函数或方法作为魔法方法，例如 `__call` 和 `__autoload`；
+
+### 常量和配置
+
+*   常量以大写字母和下划线命名，例如 `APP_PATH`和 `THINK_PATH`；
+*   配置参数以小写字母和下划线命名，例如 `url_route_on` 和`url_convert`；
+
+### 数据表和字段
+
+*   数据表和字段采用小写加下划线方式命名，并注意字段名不要以下划线开头，例如 `think_user` 表和 `user_name`字段，不建议使用驼峰和中文作为数据表字段命名。
+
+## 参与开发
+
+请参阅 [ThinkPHP5 核心框架包](https://github.com/top-think/framework)。
+
+## 版权信息
+
+ThinkPHP遵循Apache2开源协议发布，并提供免费使用。
+
+本项目包含的第三方源码和二进制文件之版权信息另行标注。
+
+版权所有Copyright © 2006-2018 by ThinkPHP (http://thinkphp.cn)
+
+All rights reserved。
+
+ThinkPHP® 商标和著作权所有者为上海顶想信息科技有限公司。
+
+更多细节参阅 [LICENSE.txt](LICENSE.txt)
