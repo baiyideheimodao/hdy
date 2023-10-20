@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>区域管理</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+</head>
+<body>
+<link rel="stylesheet" href="__style__/ztree/v3/css/metroStyle/metroStyle.css" type="text/css">
+<div class="layui-card">
+    <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+        <div class="layui-btn-group">
+            <button data-href="/admin/setting/add_area" class="layui-btn" id="addRegion"><i class="fa fa-plus-circle"></i> 添加区域</button>
+            <button data-href="/admin/setting/edit_area" class="layui-btn layui-btn-normal" id="editRegion"><i class="fa fa-edit"></i> 编辑区域</button>
+            <button data-href="/admin/setting/del_area" class="layui-btn layui-btn-danger" id="delRegion"><i class="fa fa-trash-o"></i> 删除区域</button>
+        </div>
+    </div>
+    <div class="layui-card-body">
+
+        <div class="ztree" id="region"></div>
+    </div>
+</div>
+<script type="text/javascript" src="__style__/ztree/v3/js/jquery.min.js"></script>
+<script src="__style__/layui/layui.js"></script>
+<script type="text/javascript" src="__style__/ztree/v3/js/jquery.ztree.core-3.5.js"></script>
+<script type="text/javascript" src="__style__/ztree/v3/js/jquery.ztree.excheck-3.5.js"></script>
+<script type="text/javascript" src="__style__/ztree/v3/js/jquery.ztree.exedit-3.5.js"></script>
+<script>
+    var rules = [];
+    layui.config({
+                     base: '../../../layuiadmin/' //静态资源所在路径
+                 }).extend({
+                               index: 'lib/index' //主入口模块
+                           }).use(['index', 'useradmin', 'table'], function() {
+        var $ = layui.$
+            , form = layui.form, setter = layui.setter
+            , table = layui.table;
+        function doAction(index,layero){
+            var othis = layero.find('iframe').contents().find("#layuiadmin-app-form-tags")
+                ,url = othis.find('input[name="url"]').val()
+                ,id = othis.find('input[name="id"]').val()
+                ,p_id = othis.find('input[name="p_id"]').val()
+                ,name = othis.find('input[name="name"]').val()
+                ,sort = othis.find('input[name="sort"]').val();
+            $.ajax({
+                       method:'post',
+                       type:'json',
+                       url:url,
+                       data:{id:id,p_id:p_id,name:name,sort:sort},
+                       success:function (res) {
+                           layer.msg(res.msg);
+                           if(res.code === 1){
+                               setTimeout(function () {
+                                   window.location.reload(); // 父页面刷新
+                               },1000);
+                               return false;
+                           }
+
+                       }
+                   })
+        }
+        var treeObj = $.fn.zTree.init($("#region"), {
+            view: {
+                dblClickExpand: false,
+                showLine: true,
+                showIcon: true,
+                selectedMulti: false
+            },
+            edit: {
+                enable: true,
+                editNameSelectAll: true,
+                showRemoveBtn: false,
+                showRenameBtn: false
+            },
+            data: {
+                simpleData: {
+                    enable: true
+                }
+            },
+            callback: {
+                onClick: function () {
+
+                    var zTree = $.fn.zTree.getZTreeObj('region');
+                    $.each(zTree.getSelectedNodes(), function (i, z) {
+                        rules.push(z.id);
+                    });
+                    $('#rules').val(rules.join(','));
+                }
+            }
+        }, {$list|raw});
+        var nodes = treeObj.transformToArray(treeObj.getNodes());
+        //展开第一级树
+        treeObj.expandAll(nodes);
+
+        $('#addRegion').on('click', function(){
+            var zTree = $.fn.zTree.getZTreeObj('region'),
+                nodes = zTree.getSelectedNodes(),
+                treeNode = nodes[0];
+            var id = treeNode == undefined ? 0 : treeNode.id;
+            layer.open({
+                           type: 2
+                           ,title: '添加地区'
+                           ,content: '/admin/setting/add_area?id='+id
+                           ,area: ['450px', '300px']
+                           ,btn: ['确定', '取消']
+                           ,yes: function(index, layero){
+                                doAction(index, layero);
+                            }
+                       });
+        });
+
+        $('#editRegion').on('click', function(){
+            var zTree = $.fn.zTree.getZTreeObj('region'),
+                nodes = zTree.getSelectedNodes(),
+                treeNode = nodes[0];
+            if (nodes.length == 0) {
+                layer.msg('请先选择一个地区');
+                return false;
+            } else {
+                var id = treeNode.id;
+                layer.open({
+                               type: 2
+                               ,title: '修改地区'
+                               ,content: '/admin/setting/edit_area?id='+id
+                               ,area: ['450px', '300px']
+                               ,btn: ['确定', '取消']
+                               ,yes: function(index, layero){
+                                    doAction(index, layero);
+                                }
+                           });
+            }
+        });
+        $(".clear_btn").on('click',function(){
+            $("#rules").val("");
+            rules=[];
+            return false;
+        });
+
+        $('#delRegion').on('click', function(){
+            layer.confirm('确定删除？', {
+                icon: 3,
+                title: '提示'
+            }, function(index) {
+                var zTree = $.fn.zTree.getZTreeObj('region'),
+                    nodes = zTree.getSelectedNodes(),
+                    treeNode = nodes[0];
+                if (nodes.length == 0) {
+                    layer.msg('请先选择一个地区');
+                    return false;
+                } else {
+                    // var id = treeNode.id;
+                    var id = $("#rules").val();
+                    var index = layer.msg('删除中，请稍候', {
+                        icon: 16,
+                        time: false,
+                        shade: 0.3
+                    });
+                    $.ajax({
+                               url: '{:url("/admin/setting/del_area")}?id=' + id,
+                               type: 'post',
+                               dataType: 'json',
+                               success: function(res) {
+                                   if (res.code == 200) {
+                                       layer.msg('删除成功', {
+                                           offset: '15px',
+                                           icon: 1,
+                                           time: 1000
+                                       },function(){
+                                           window.location.reload(); // 父页面刷新
+                                       });
+                                   } else {
+                                       if(layer.msg){
+                                           layer.msg(res.msg, {
+                                               offset: '15px',
+                                               icon: 2
+                                           });
+                                       }else{
+                                           window.location.reload();
+                                       }
+                                   }
+                               },
+                               error: function (xhr, state, errorThrown) {
+                                   layer.close(index);
+                                   layer.msg(state + '：' + errorThrown);
+                               }
+                           });
+                }
+            });
+            return false;
+        });
+        $("#createRegion").on('click',function(){
+            $.post('/admin/dictionary/createRegion',{type:1},function(data){
+                layer.msg(data.msg);
+            });
+        });
+    });
+
+</script>
+</body>
+</html>

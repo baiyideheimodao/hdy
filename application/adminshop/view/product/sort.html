@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>导航菜单</title>
+    <link rel="stylesheet" href="../../layuiadmin/layui/css/layui.css" media="all">
+    <script src="../../layuiadmin/layui/layui.js"></script>
+    <link rel="stylesheet" href="../../layuiadmin/style/admin.css" media="all">
+    <script type="text/javascript" src="http://libs.baidu.com/jquery/1.8.3/jquery.min.js"></script>
+    <style>
+
+    </style>
+</head>
+<body style="background-color: #FFFFFF;">
+<!-- 你的HTML代码 -->
+<!-- 表格 -->
+<div class="layui-fluid">
+    <!-- 操作列 -->
+    <div id="m_id">
+        <table class="layui-hidden" id="treeTable" lay-filter="treeTable"></table>
+    </div>
+    <script type="text/html" id="toolbarDemo">
+        <div class="layui-btn-container">
+
+                <button class="layui-btn layui-btn-sm" lay-event="add"><i class="layui-icon">&#xe654;</i>新增</button>
+                <button class="layui-btn layui-btn-sm" lay-event="zhankai"><i class="layui-icon">&#xe642;</i>展开全部</button>
+                <button class="layui-btn layui-btn-sm" lay-event="delete"><i class="layui-icon">&#xe640;</i>删除</button>
+                <button class="layui-btn layui-btn-sm" lay-event="refresh"><i class="layui-icon">&#xe666;</i>刷新</button>
+
+
+        </div>
+    </script>
+
+
+    <script type="text/html" id="toolbarDemo11">
+        <div class="layui-btn-group">
+            <button class="layui-btn layui-btn-primary layui-btn-xs" onclick="sortAdd();"><i
+                    class="layui-icon layui-icon-add-1"></i>增加
+            </button>
+            <button class="layui-btn layui-btn-primary layui-btn-xs" id="btn-fold" data-id="1"><i
+                    class="layui-icon layui-icon-align-left"></i>展开全部
+            </button>
+            <button class="layui-btn layui-btn-primary layui-btn-xs" onclick="refresh();"><i
+                    class="layui-icon layui-icon-edit"></i>刷新
+            </button>
+            <button class="layui-btn layui-btn-primary layui-btn-xs" lay-event="delAll"><i
+                    class="layui-icon layui-icon-delete"></i>删除
+            </button>
+        </div>
+    </script>
+    <script type="text/html" id="auth-state">
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    </script>
+    <!-- 这里的 显示/隐藏 -->
+    <script type="text/html" id="switchTpl">
+        <input type="checkbox" name="hide" value="{{d.id}}" lay-skin="switch" lay-text="显示|隐藏" lay-filter="showDemo" {{
+               d.hide== 1 ? 'checked' : '' }}>
+    </script>
+    <!-- 这里的 显示/隐藏 -->
+    <script type="text/html" id="switchrecommend">
+        <input type="checkbox" name="recommend" value="{{d.id}}" lay-skin="switch" lay-text="推荐|普通" lay-filter="showDemo" {{
+               d.recommend== 1 ? 'checked' : '' }}>
+    </script>
+    <!-- 位置 -->
+    <script type="text/html" id="operation">
+        <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit"><i class='layui-icon'>&#xe642;</i>修改</a>
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del"><i class='layui-icon'>&#xe640;</i>删除</a>
+    </script>
+    <!-- 表格end -->
+    <script>
+        var editObj = null, ptable = null, treeGrid = null, tableId = 'treeTable', layer = null;
+        layui.config({
+            base: '../../layuiadmin/modules/'
+        }).extend({
+            treetable: 'treetable'
+        }).use(['jquery', 'treetable', 'layer', 'table'], function () {
+            var $ = layui.jquery;
+            table = layui.table;
+            treetable = layui.treetable;//很重要
+            form = layui.form;
+            layer = layui.layer;
+            ptable = function () {
+                layer.load(2);
+                treetable.render({
+                    treeColIndex: 1,
+                    treeSpid: "0",
+                    treeIdName: 'id',
+                    treePidName: 'pId',
+                    treeDefaultClose: true,
+                    treeLinkage: false,
+                    treeShowName: 'name' , //以树形式显示的字段
+                    elem: '#' + tableId,
+                    toolbar: '#toolbarDemo',
+                    url: '{:url('menujsondata')}',
+                    cols: [[
+                        {type: 'checkbox'},
+                       // {type: 'numbers'},
+                        {field: 'name', title: '名称'},
+                        {field: 'id', title: 'id'},
+                        // {field: 'position', title: 'position'},
+                        // {field:'icon', title: '图标', event: 'addIcon', style: 'cursor: pointer;', width: 100
+                        // , templet: function (d) {
+                        //     return '<i class="fa fa-' + d.icon + '" style="font-size: 20px; color: #1E9FFF;"></i>'
+                        //     return d.icon
+                        // }},
+                        {field: 'pid', title: 'pId'},
+                        {field: 'sort', edit: 'text',style: 'cursor: pointer;', width: 70, title: '排序'},
+                        // {
+                        //     field: 'position',
+                        //     title: '位置',
+                        //     event: 'addPosition',
+                        //     style: 'cursor: pointer;',
+                        //     width: 60,
+                        //     templet: '#positionTpl'
+                        // },
+                        {field: 'hide', title: '显|隐', width: 100, templet: '#switchTpl', unresize: true},
+                        {field: 'recommend', title: '普通|推荐', width: 100, templet: '#switchrecommend', unresize: true},
+                        {templet: '#operation', width: 150,  title: '操作'}
+                    ]]
+                    ,page: true
+                    ,limits: [3,5,10]  //一页选择显示3,5或10条数据
+                    ,limit: 10  //一页显示10条数据
+                    ,parseData: function(res){ //将原始数据解析成 table 组件所规定的数据，res为从url中get到的数据
+                        var result;
+                        console.log(this);
+                        console.log(JSON.stringify(res));
+                        if(this.page.curr){
+                            result = res.data.slice(this.limit*(this.page.curr-1),this.limit*this.page.curr);
+                        }
+                        else{
+                            result=res.data.slice(0,this.limit);
+                        }
+                        return {
+                            "code": res.code, //解析接口状态
+                            "msg": res.msg, //解析提示文本
+                            "count": res.count, //解析数据长度
+                            "data": result //解析数据列表
+                        };
+                    }
+                    ,done: function () {
+                        layer.closeAll('loading');
+                    }
+                });
+
+            };
+            ptable();
+
+
+
+            //头工具栏事件
+            table.on('toolbar(treeTable)', function(obj){
+                var checkStatus = table.checkStatus('treeTable');
+                var data = checkStatus.data;
+                if(obj.event === 'add'){
+                    var pid = data.length==0? 0 : data[0].id;
+                    layer.open({
+                        type: 2
+                        , title: '修改栏目内容'
+                        , content: '{:url('sortAdd')}?pid=' + pid
+                        , maxmin: true
+                        , area: ['900px', '500px']
+                        , btn: ['确定', '取消']
+                        , yes: function (index, layero) {
+                            //点击确认触发 iframe 内容中的按钮提交
+                            var submit = layero.find('iframe').contents().find("#layuiadmin-app-form-submit");
+                            submit.click();
+                        }
+                    });
+                }else if(obj.event === 'zhankai'){
+                    //折叠/展开
+                    treetable.expandAll('#treeTable');
+                }else if(obj.event === "delete"){
+                    if(data.length == 0){
+                        layer.msg("请选择要删除的分类");
+                    }else{
+                        var idData = JSON.stringify(data);
+                        layer.confirm('确定删除选定行的数据吗?', function(index){
+                            $.post('sortDel',{data:idData,action:'piliang'},function(result){
+                                console.log(result);
+                                if(result.code==100){
+                                    layer.close(index);
+                                    ptable();
+                                }
+                                layer.msg("删除成功！");
+                            });
+                        });
+                    }
+                }else if(obj.event === "refresh"){
+                    ptable();
+                }
+            })
+
+
+            table.on('tool(' + tableId + ')', function (obj) {
+                if (obj.event === 'del') {
+                    console.log(obj)
+                    //删除行
+                    del(obj);
+                } else if (obj.event === "add") {
+                    //添加行
+                    add(obj);
+                } else if (obj.event === "edit") {
+                    //修改
+                    edit(obj);
+                }
+            });
+
+            //更新 显示/隐藏  操作
+            form.on('switch(showDemo)', function (obj) {
+
+                var id = this.value;
+                var field = this.name;
+                var value = obj.elem.checked;
+                if (value) {
+                    value = 1;
+                } else {
+                    value = 0;
+                }
+                //更新后台数据
+                $.ajax({
+                    type: "POST",
+                    url: "{:url('sortEdit')}",
+                    data: {id: id, value: value, type: field, action: 'ajax_update'},
+                    success: function (data) {
+                        layer.msg(data['msg']);
+                    },
+                    error: function () {
+                        layer.msg('更新失败！');
+                    }
+                });
+            });
+
+
+        });
+
+        //单个删除
+        function del(obj) {
+            var pdata = obj ? obj.data : null;
+            layer.confirm("你确定删除数据吗？如果存在下级节点则一并删除，此操作不能撤销！", {icon: 3, title: '提示'},
+                function (index) {
+                    //确定回调
+                    obj.del();
+                    //更新后台数据
+                    $.ajax({
+                        type: "get",
+                        url: "{:url('sortdel')}",
+                        data: {id: pdata.id},
+                        success: function (data) {
+                            if (data.code == 100) {
+                                layer.msg(data.msg);
+                                // self.location='{:url('index')}';
+                            } else {
+                                layer.msg(data.msg);
+                                //table.render({});//重新渲染
+                            }
+                        },
+                        error: function () {
+                            layer.msg('更新失败！');
+                        }
+                    });
+                    layer.close(index);
+                }, function (index) {
+                    //取消回调
+                    layer.close(index);
+                }
+            );
+        }
+
+
+        var i = 1000;
+
+
+
+        //修改
+        function edit(pObj) {
+            //修改栏目信息
+            layer.open({
+                type: 2
+                , title: '修改栏目内容'
+                , content: '{:url('sortEdit')}?id=' + pObj.data.id
+                , maxmin: true
+                , area: ['900px', '500px']
+                , btn: ['确定', '取消']
+                , yes: function (index, layero) {
+                    //点击确认触发 iframe 内容中的按钮提交
+                    var submit = layero.find('iframe').contents().find("#layuiadmin-app-form-submit");
+                    submit.click();
+                }
+            });
+
+
+
+        }
+
+
+
+        //刷新
+        function refresh() {
+            ptable()
+        }
+
+        //批量删除
+        function delAll() {
+            //alert('1')
+            var checkStatus = table.checkStatus('tableId');
+            console.log(checkStatus.data) //获取选中行的数据
+            console.log(checkStatus.data.length) //获取选中行数量，可作为是否有选中行的条件
+            console.log(checkStatus.isAll ) //表格是否全选
+            return;
+            //console.log(JSON.stringify(data))
+            var dataall = '';
+            data = checkStatus.data;
+
+            //循环把所有要删除的ID整成12,13,545
+            for (var i = 0; i < checkStatus.data.length; i++) {
+                dataall += data[i].id + ",";
+            }
+            dataall = dataall.substring(0, dataall.length - 1)
+            //alert(dataall)
+            //layer.alert(dataall);
+            layer.confirm('真的删除行么', function (index) {
+                //obj.del();
+                //id= data.id;
+                layer.close(index);
+                $.ajax({
+                    url: '{:url('del')}',
+                    type: "post",
+                    data: {id: dataall},
+                    async: true,
+                    success: function (data) {
+                        if (data[0] == 1) {
+                            layer.msg(data[1]);
+                            //table.reload(treeTable)
+                            //self.location='{:url('index')}';
+                        } else {
+                            layer.msg('失败！' + data[1]);
+                            //
+                        }
+                        //table.reload(treeTable)
+                        ptable()
+
+                    },
+                    error: function () {
+                        layer.msg('页面跳转失败！');
+                    }
+                });
+            });
+        }
+
+         function openorclose() {
+             var map=treeGrid.getDataMap(tableId);
+             //var o= map['257','259'];
+             treeGrid.treeNodeOpen(o,!o.is_open);
+         }
+
+        function getCheckData() {
+            var checkStatus = treeGrid.checkStatus(tableId)
+                , data = checkStatus.data;
+            layer.alert(JSON.stringify(data));
+        }
+
+        function getCheckLength() {
+            var checkStatus = treeGrid.checkStatus(tableId)
+                , data = checkStatus.data;
+            layer.msg('选中了：' + data.length + ' 个');
+        }
+    </script>
+</body>
+</html>

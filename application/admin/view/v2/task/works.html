@@ -1,0 +1,57 @@
+{extend name="base" /}
+{block name="table_tpl"}
+<script type="text/html" id="avatar_tpl">
+    <div class="layui-inline">
+        <img style="display: inline-block; width: 50%; height: 100%;" src= {{ d.avatar }}>
+    </div>
+</script>
+<script type="text/html" id="sex_tpl">
+    {{#  if(d.sex == 0){ }}
+    未知
+    {{#  } else if(d.sex == 1){ }}
+    男
+    {{#  } else{ }}
+    女
+    {{#  } }}
+</script>
+<script type="text/html" id="state_tpl">
+    {{#  if(d.status == 1){ }}
+    <span style="color:#00B83F;">已评分</span>
+    {{#  } else{ }}
+    <span style="color:red;">未评分</span>
+    {{#  } }}
+</script>
+{/block}
+{block name="search"}
+<div class="layui-inline">
+    <label class="layui-form-label">标题</label>
+    <div class="layui-input-block">
+        <input type="text" name="title" placeholder="请输入" autocomplete="off" class="layui-input">
+    </div>
+</div>
+{/block}
+{block name="js"}
+{/block}
+{block name="table_js"}
+table.render({
+    elem: '#news_type'
+    ,url: '/admin/v2.Task/selectionOfWorks'
+    ,toolbar: '#top_tool_bar'
+    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+    ,title: ''
+    ,method: 'post'
+    ,cols: [[
+        {field:'id', title:'ID', unresize: true, sort: true}
+        ,{field:'task_name', title:'活动名称'}
+        ,{field:'avatar', title:'头像', templet: '#avatar_tpl'}
+        ,{field:'student_name', title:'参赛人'}
+        ,{field:'sex', title:'性别',templet:'#sex_tpl'}
+        ,{field:'school_name', title:'学校'}
+        ,{field:'grade_name', title:'年级'}
+<!--        ,{field:'teacher_name', title:'评委老师'}-->
+        ,{field:'status', title:'评分状态',templet:'#state_tpl'}
+        ,{fixed: 'right', title:'操作', toolbar: '#right_tool_bar'}
+    ]]
+    ,page: true
+});
+{/block}

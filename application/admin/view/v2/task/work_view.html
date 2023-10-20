@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+    <link rel="stylesheet" href="__STATIC__/css/baguetteBox.css" media="all">
+    <script src="__STATIC__/js/jquery-1.8.3.min.js"></script>
+    <script src="__STATIC__/js/baguetteBox.js"></script>
+    <script>
+        $(function(){
+            baguetteBox.run('.baguetteBox');
+        });
+    </script>
+    <style>
+        .baguetteBox {display: flex;justify-content: space-around;flex-wrap: wrap;}
+        .baguetteBox .item-list{padding: 5px;border: 1px solid #dcdcdc;background: #f5f5f5;display:flex;align-items: center;justify-content:center;width: 24%;}
+        .baguetteBox img { display: inline-block; width: 100%; }
+        .task-title {
+            text-align: center;
+            font-size: 22px;
+            color: #1e9fff;
+            font-weight: bold;
+            padding: 5px;
+        }
+
+        .question-box {
+            border: 1px solid #1e9fff;
+        }
+
+        .question-box .quest-title {
+            font-size: 18px;
+            font-weight: 500;
+            background-color: #1e9fff;
+            padding: 10px 0 10px 30px;
+            line-height: 35px;
+            color: #fff;
+        }
+
+        .question-box .quest-title:before {
+            content: '题目标题：';
+        }
+
+        .question-box .quest-con {
+            padding: 20px;
+        }
+
+        .question-box .quest-con-c {
+            padding: 20px;
+            border: 1px solid #e6e6e6;
+        }
+
+        .question-box .item-answer{
+            margin: 60px 0 20px 0;
+        }
+        .question-box .layui-file{
+            padding: 20px;
+            border: 1px solid #e6e6e6;
+        }
+
+
+        .eval-box .layui-form-item {
+            border: 1px solid #1e9fff;
+            border-top: 0;
+        }
+
+        .quest {
+            margin-bottom: 10px;
+        }
+
+        .me-label-s {
+            line-height: 30px;
+        }
+
+    </style>
+</head>
+<body>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header" style="padding:10px 0 20px 0;">
+                    <div class="task-title">{$taskName}</div>
+                </div>
+                <div class="layui-card-body">
+                    <div class="question-box">
+                        {if condition="$questType eq 'NORMAL_TYPE'"}
+                        {volist name="questionList" id="item"}
+                        <div class="quest-title quest">{$item.questionName}</div>
+                        <div class="quest-con layui-form-pane">
+                            {if condition="!empty($item.images)"}
+                            <div class="layui-form-item item-file">
+                                <label class="layui-form-label">题目附件</label>
+                                <div class="quest-con-c layui-input-block">
+                                    {if condition="$item.file_type eq 'image'"}
+                                    <img class="layui-upload-img" src="{$item.images}">
+                                    {else/}
+                                    <video class="layui-upload-img" controls="controls" src="{$item.images}">当前浏览器版本过低
+                                    </video>
+                                    {/if}
+                                </div>
+                            </div>
+                            {/if}
+                            {if condition="!empty($item.desc)"}
+                            <div class="layui-form-item item-desc">
+                                <label class="layui-form-label">题目描述</label>
+                                <div class="quest-con-c layui-input-block">
+                                    {$item.desc}
+                                </div>
+                            </div>
+                            {/if}
+
+                            {if condition="!empty($item.content)"}
+                            <div class="item item-ques-list">
+                                <label class="layui-form-label">题目列表</label>
+                                <div class="quest-con-c layui-input-block">
+                                    {if condition="is_array($item.content)"}
+                                    {volist name="$item['content']" id="vo"}
+                                    {:retAnswerHtml($vo,$key)}
+                                    {/volist}
+                                    {else/}
+                                    {/if}
+                                </div>
+                            </div>
+                            {/if}
+                            <div class="item-answer">
+                                <blockquote class="layui-elem-quote layui-text" style="padding: 20px 15px;">
+                                    <b style="font-size: 16px;">下面是同学回答的内容，请认真评分哦</b>
+                                </blockquote>
+                            </div>
+
+                            {if condition="!empty($item.answer)"}
+                            <div class="quest-answer quest">
+                                {volist name="$item['answer']" id="vo"}
+                                {:retHtmlMedia($vo)}
+                                {/volist}
+                            </div>
+                            {/if}
+                        </div>
+                        {/volist}
+                        {else /}
+                            {volist name="questionList" id="questions"}
+                            {volist name="$questions" id="item"}
+                            <div class="quest-title quest">{$item.questionName}</div>
+                            <div class="quest-con layui-form-pane">
+                                {if condition="!empty($item.images)"}
+                                <div class="layui-form-item item-file">
+                                    <label class="layui-form-label">题目附件</label>
+                                    <div class="quest-con-c layui-input-block">
+                                        {if condition="$item.file_type eq 'image'"}
+                                        <img class="layui-upload-img" src="{$item.images}">
+                                        {else/}
+                                        <video class="layui-upload-img" controls="controls" src="{$item.images}">当前浏览器版本过低
+                                        </video>
+                                        {/if}
+                                    </div>
+                                </div>
+                                {/if}
+                                {if condition="!empty($item.desc)"}
+                                <div class="layui-form-item item-desc">
+                                    <label class="layui-form-label">题目描述</label>
+                                    <div class="quest-con-c layui-input-block">
+                                        {$item.desc}
+                                    </div>
+                                </div>
+                                {/if}
+
+                                <div class="item-answer">
+                                    <blockquote class="layui-elem-quote layui-text" style="padding: 20px 15px;">
+                                        <b style="font-size: 16px;">下面是同学回答的内容，请认真评分哦</b>
+                                    </blockquote>
+                                </div>
+
+                                {if condition="!empty($item.answer)"}
+                                <div class="quest-answer quest">
+                                    {volist name="$item['answer']" id="vo"}
+                                    {:retHtmlMedia($vo)}
+                                    {/volist}
+                                </div>
+                                {/if}
+                            </div>
+                        {/volist}
+                        {/volist}
+                        {/if}
+                    </div>
+
+                    <div class="eval-box layui-form" lay-filter="layuiadmin-form-tags">
+                        <input name="id" type="hidden" value="{$id}">
+                        <input name="sorce" type="hidden" value="1">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label me-label-s">评分</label>
+                            <div class="layui-input-block">
+                                <div id="selection"></div>
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-hide">
+                            <input type="button" lay-submit lay-filter="layuiadmin-app-form-submit"
+                                   id="layuiadmin-app-form-submit" value="确定">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="__style__/layui/layui.js"></script>
+<script>
+    layui.config({
+        base: '__style__/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'table', 'rate'], function () {
+        var admin = layui.admin
+            , table = layui.table
+            , form = layui.form
+            , rate = layui.rate
+            , $ = layui.$;
+        rate.render({
+            elem: '#selection'
+            , text: true
+            , length: 3
+            , value: 1
+            , setText: function (value) { //自定义文本的回调
+                $('input[name=sorce]').val(value);
+                this.span.text(value + "分");
+            }
+        });
+
+        form.on('submit(layuiadmin-app-form-submit)', function (data) {
+            var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+            $.ajax({
+                url: "/admin/v2.task/work_view",
+                type: 'post',
+                data: data.field,
+                dataType: "json",
+                success: function (data) {
+                    layer.msg(data.msg);
+                    if (data.code == 1) {
+                        setTimeout(function () {
+                            parent.location.reload(); //重载加载页面
+                            parent.layer.close(index); //再执行关闭
+                        }, 1000);
+                    }
+                },
+                error: function (e) {
+                    layer.alert("提交失败！");
+                    return false;
+                }
+            });
+
+        });
+    });
+</script>
+</body>
+</html>

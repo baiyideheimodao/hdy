@@ -1,0 +1,51 @@
+{extend name="base" /}
+{block name="table_tpl"}
+<script type="text/html" id="state_tpl">
+    <input type="checkbox" name="state" lay-skin="switch" lay-text="显示|隐藏" lay-filter="state_tpl"
+           value="{{ d.state }}" data-json="{{ encodeURIComponent(JSON.stringify(d)) }}" {{ d.state == 1 ? 'checked' : '' }}>
+</script>
+{/block}
+{block name="table_js"}
+table.render({
+    elem: '#news_type'
+    ,url: '/admin/grade/index'
+    ,toolbar: '#top_tool_bar'
+    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+    ,title: ''
+    ,method: 'post'
+    ,cols: [[
+        // {type: 'checkbox', fixed: 'left'},
+        {field:'id', title:'ID', fixed: 'left', unresize: true, sort: true}
+        ,{field:'name', title:'年级'}
+        ,{field:'sort', title:'排序',edit: 'text'}
+        ,{field:'state', title:'状态', sort: true, templet: '#state_tpl', unresize: true}
+        ,{fixed: 'right', title:'操作', toolbar: '#right_tool_bar', width:150}
+    ]]
+    ,page: true
+});
+form.on('switch(state_tpl)', function(obj){
+    var json = JSON.parse(decodeURIComponent($(this).data('json')));
+    json = table.clearCacheKey(json);
+    $.ajax({
+        method:'post',
+        type:'json',
+        url:'/admin/grade/edit',
+        data:{id:json.id,state:(parseInt(json.state) === 1?0:1)},
+        success:function (res) {
+            layer.msg(res.msg);
+        }
+    })
+});
+//监听单元格编辑
+table.on('edit(news_type)', function(obj){
+    $.ajax({
+        method:'post',
+        type:'json',
+        url:'/admin/grade/edit',
+        data:{id:obj.data.id,sort:obj.data.sort},
+        success:function (res) {
+            layer.msg(res.msg);
+        }
+    })
+});
+{/block}

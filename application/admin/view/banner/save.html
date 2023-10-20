@@ -1,0 +1,166 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <style>
+        .layui-upload-img{width: 258px; height: 135px;}
+    </style>
+</head>
+<body>
+
+<div class="layui-form" lay-filter="layuiadmin-app-form-list" id="layuiadmin-app-form-list" style="padding: 20px 30px 0 0;">
+    <input type="hidden" name="id" value="{$info.id|default=''}">
+    <div class="layui-form-item">
+        <label class="layui-form-label">广告位置</label>
+        <div class="layui-input-inline" style="width: 300px;">
+            <select name="type" class="layui-select" lay-filter="type">
+                <option value="1" {if condition="isset($info) and $info.type eq 1"}selected{/if}>首页顶部</option>
+                <option value="2" {if condition="isset($info) and $info.type eq 2"}selected{/if}>首页中间</option>
+                <option value="3" {if condition="isset($info) and $info.type eq 3"}selected{/if}>首页底部</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <input name="image" type="hidden" value="{$info.image|default=''}">
+        <label class="layui-form-label">图片</label>
+        <div class="layui-input-block">
+            <div class="layui-upload">
+                <div class="layui-upload-drag" id="image">
+                    {if condition="!isset($info) or empty($info.image)"}
+                    <i class="layui-icon"></i>
+                    <p>点击上传，或将文件拖拽到此处</p>
+                    {else/}
+                    <img src="{$info.image}" class="layui-upload-img">
+                    {/if}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">标题</label>
+        <div class="layui-input-inline" style="width: 300px;">
+            <input type="text" name="name" lay-verify="required" placeholder="请输入标题" autocomplete="off" class="layui-input" value="{$info.name|default=''}">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">链接类型</label>
+        <div class="layui-input-block">
+            <input type="radio" name="link_type" value="0" title="新闻" lay-filter="ChoiceRadio" {if condition="isset($info)"}{if condition="$info.link_type eq 0"}checked=""{/if}{else/}checked=""{/if}>
+            <input type="radio" name="link_type" value="1" title="视频" lay-filter="ChoiceRadio" {if condition="isset($info) and $info.link_type eq 1"}checked=""{/if}>
+            <input type="radio" name="link_type" value="2" title="商品" lay-filter="ChoiceRadio" {if condition="isset($info) and $info.link_type eq 2"}checked=""{/if}>
+            <input type="radio" name="link_type" value="3" title="外链" lay-filter="ChoiceRadio" {if condition="isset($info) and $info.link_type eq 3"}checked=""{/if}>
+            <input type="radio" name="link_type" value="4" title="活动" lay-filter="ChoiceRadio" {if condition="isset($info) and $info.link_type eq 4"}checked=""{/if}>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">链接</label>
+        <div class="layui-input-inline" style="width: 300px;">
+            <input lay-verify="required" {if condition="isset($info) and $info.link_type eq 3"}type="text"{else/}type="number"{/if} name="url" placeholder="请输入新闻id" autocomplete="off" class="layui-input" value="{$info.url|default=''}">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">排序</label>
+        <div class="layui-input-inline" style="width: 300px;">
+            <input type="number" name="sort" placeholder="请输入排序" autocomplete="off" class="layui-input" value="{$info.sort|default=0}">
+        </div>
+    </div>
+    <div class="layui-form-item layui-hide">
+        <input type="button" lay-submit lay-filter="layuiadmin-app-form-submit" id="layuiadmin-app-form-submit" value="确认添加">
+    </div>
+</div>
+
+<script src="__style__/layui/layui.js"></script>
+<script>
+    layui.config({
+                     base: '__style__/' //静态资源所在路径
+                 }).extend({
+                               index: 'lib/index' //主入口模块
+                           }).use(['index', 'form','upload'], function(){
+        var $ = layui.$
+                ,upload = layui.upload
+                ,form = layui.form;
+        upload.render({
+                          elem    : '#image'
+                          , url   : '/admin/question/upload_pic'
+                          , before: function (obj) {
+                                //预读本地文件示例，不支持ie8
+                                obj.preview(function (index, file, result) {
+                                    $('#image').html('<img class="layui-upload-img" src="' + result + '">');
+                                });
+                            }
+                           , done  : function (res) {
+                                //如果上传失败
+                                if (res.code > 0) {
+                                    return layer.msg('上传失败');
+                                }
+                                $('input[name=image]').val(res.data.src);
+                            }
+                           , error : function () {
+                                //演示失败状态，并实现重传
+                                $('input[name=image]').html('<i class="layui-icon"></i><p>点击上传，或将文件拖拽到此处</p>');
+                            }
+                      });
+        //监听提交
+        form.on('submit(layuiadmin-app-form-submit)', function(data){
+            var field = data.field; //获取提交的字段
+            var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+            //提交 Ajax 成功后，关闭当前弹层并重载表格
+            $.ajax({
+
+                       url:"{$info.urls|default='/admin/banner/add'}",
+                       type:'post',
+                       data: field,
+                       dataType:"json",
+                       success:function(data){
+                           if(data.code == 1){
+                               layer.alert(data.msg,function () {
+                                   parent.location.reload(); //重载加载页面
+                                   parent.layer.close(index); //再执行关闭
+                               });
+                           }
+                           else{
+                               layer.alert(data.message);
+                               return false;
+                           }
+                       },
+                       error:function(e){
+                           layer.alert("提交失败！");
+                           return false;
+                       }
+                   });
+
+        });
+
+        //监听表单变化的值
+        form.on('radio(ChoiceRadio)', function(data){
+            $('input[name=url]').val('');
+            if(data.value==0){
+                var placeholder_text = "请输入新闻id";
+                var input_type = "number";
+            }else if(data.value==1){
+                var placeholder_text = "请输入视频id";
+                var input_type = "number";
+            }else if(data.value==2){
+                var placeholder_text = "请输入商品id";
+                var input_type = "number";
+            }else if(data.value==4){
+                var placeholder_text = "请输入活动id";
+                var input_type = "number";
+            }else{
+                var placeholder_text = "请输入外链地址";
+                var input_type = "text";
+            }
+            $('input[name=url]').attr('placeholder',placeholder_text);
+            $('input[name=url]').attr('type',input_type);
+        });
+    })
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{extend name="base" /}
+{block name="table_tpl"}
+{/block}
+{block name="table_js"}
+table.render({
+	elem: '#news_type'
+	,url:'/admin/auth/group'
+	,toolbar: '#top_tool_bar' //开启头部工具栏，并为其绑定左侧模板
+	,method:'post'
+	,title: '管理组数据表'
+	,cols: [[
+		{type: 'checkbox', fixed: 'left'}
+		,{field:'id', title:'ID', width:80, fixed: 'left', unresize: true, sort: true}
+		,{field:'name', title:'用户组'}
+		,{field:'typename', title:'用户类型'}
+		,{field:'description', title:'描述'}
+		,{field:'status', title:'状态', templet: function(res){
+			return '<em>'+ res.statusname +'</em>'
+		}}
+		,{title:'操作', toolbar: '#right_tool_bar'}
+	]]
+	,page: true
+});
+{/block}

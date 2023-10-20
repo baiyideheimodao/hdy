@@ -1,0 +1,65 @@
+{extend name="base" /}
+{block name="table_tpl"}
+<script type="text/html" id="type_tpl">
+    {{ d.type == 21 ? '职业体验' : (d.type == 22 ? '公益活动' : '劳动大赛') }}
+</script>
+<script type="text/html" id="state_tpl">
+    {{#  if(d.status == 0){ }}
+    <span style="color:orange;">待审核</span>
+    {{#  } else if(d.status == 1){ }}
+    <span style="color:green;">已通过</span>
+    {{#  } else{ }}
+    <span style="color:red;">未通过</span>
+    {{#  } }}
+</script>
+<script type="text/html" id="avatar_tpl">
+    <div class="layui-inline">
+        <img style="display: inline-block; width: 50%; height: 100%;" src= {{ d.avatar }}>
+    </div>
+</script>
+{/block}
+{block name="search"}
+{/block}
+{block name="css"}
+<style>
+    .layui-table-cell{
+        height:auto !important;
+        white-space:normal;
+    }
+</style>
+{/block}
+{block name="js"}
+{/block}
+{block name="table_js"}
+table.render({
+    elem: '#news_type'
+    ,url: '/admin/v2.sign/history'
+    ,toolbar: '#top_tool_bar'
+    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+    ,title: ''
+    ,method: 'post'
+    ,cols: [[
+        {field:'id', title:'ID', unresize: true, sort: true}
+        ,{field:'avatar', title:'头像', templet: '#avatar_tpl'}
+        ,{field:'student_name', title:'姓名'}
+        ,{field:'type', title:'活动类型', templet: '#type_tpl'}
+        ,{field:'create_time', title:'报名时间'}
+        ,{field:'status', title:'状态', sort: true, templet: '#state_tpl', unresize: true}
+    ]]
+    ,page: true
+});
+//监听操作
+form.on('switch(state_tpl)', function(obj){
+    var json = JSON.parse(decodeURIComponent($(this).data('json')));
+    json = table.clearCacheKey(json);
+    $.ajax({
+        method:'post',
+        type:'json',
+        url:'/admin/v2.teacher/state',
+        data:{id:json.id,status:(parseInt(json.status) === 1?0:1)},
+        success:function (res) {
+            layer.msg(res.msg);
+        }
+    })
+});
+{/block}

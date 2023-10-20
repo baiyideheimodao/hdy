@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+    <link rel="stylesheet" href="/static/css/comm.css" media="all">
+    <link rel="stylesheet" href="/kindeditor/themes/default/default.css"/>
+    <script src="/kindeditor/kindeditor-all.js"></script>
+    <script src="/kindeditor/lang/zh-CN.js"></script>
+    <style>
+        .layui-upload-img{
+            width:50%;
+            height:auto;
+        }
+        .layui-form-label{
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+
+    <script src="__style__/layui/layui.js"></script>
+    <script src="/layuiadmin/jquery.min.js"></script>
+    <script>
+        layui.config({
+                         base: '__style__/' //静态资源所在路径
+                     }).extend({  index: 'lib/index' //主入口模块
+                               }).use(['index', 'table','colorpicker'], function(){
+            var admin = layui.admin
+                ,table = layui.table
+                ,form = layui.form
+                ,$ = layui.$;
+
+            form.on('submit(layuiadmin-app-form-submit)', function(data){
+                var field        = data.field; //获取提交的字段
+                var index    = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                //提交 Ajax 成功后，关闭当前弹层并重载表格
+                $.ajax({
+                           url     : "/admin/v2.setting/index",
+                           type    : 'POST',
+                           data    : field,
+                           dataType: "json",
+                           success : function (data) {
+                               if (data.code === 1) {
+                                   layer.alert(data.msg);
+                               } else {
+                                   layer.alert(data.msg);
+                                   return false;
+                               }
+                           },
+                           error   : function (e) {
+                               layer.alert("提交失败！");
+                               return false;
+                           }
+                       });
+            });
+        });
+    </script>
+</head>
+<body>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                {if isset($pageName) and !empty($pageName)}
+                <div class="layui-card-header layui-elem-quote">当前位置：<span class="line-text">{$pageName}</span></div>
+                {/if}
+                <div class="layui-card-body">
+                    <div class="layui-tab layui-tab-brief" lay-filter="group">
+                        <ul class="layui-tab-title">
+                        {foreach name="list" key="k" item="v"}
+                            <li lay-id="{$k}" class=" {if $k eq '1'}layui-this{/if}">{$v.name}</li>
+                        {/foreach}
+                        </ul>
+                        <div class="layui-tab-content">
+                            {foreach name="list" key="k" item="v"}
+                            <div class="layui-tab-item {if $k eq '1'}layui-show{/if}">
+                                <div class="layui-form" method="post">
+                                    {foreach name="v.config" item="config"}
+                                    {if $config.type neq '2'}
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label" title="{$config.title}">{$config.title}</label>
+                                        <div class="{if $config.type neq '3' and $config.type neq '6'}layui-input-block{else/}layui-input-inline{/if}">
+                                            {if $config.type eq '0'}
+                                            <input type="text" name="config[{$config.id}]" value="{$config.content|default=''}" placeholder="请输入{$config.title}" class="layui-input">
+                                            {/if}
+                                            {if $config.type eq '1'}
+                                            <textarea name="config[{$config.id}]" id="editor_{$config.id}" placeholder="请输入{$config.title}" class="layui-textarea">{$config.content|default=''}</textarea>
+                                            <script>
+                                                var editor_{$config.id};
+                                                KindEditor.ready(function (K) {
+                                                    editor_{$config.id} = K.create('#editor_{$config.id}', {
+                                                        filterMode: false,//不开启html过滤模式，则读取值可以直接在textarea中显示
+                                                        afterBlur : function () {
+                                                            this.sync();
+                                                        }//同步回去后当做是input进行ajax提交即可
+                                                    });
+                                                });
+                                            </script>
+                                            {/if}
+                                            {if $config.type eq '4'}
+                                            <select name="name="config[{$config.id}]"">
+                                                {foreach name=":parse_attr($config.options)" key="i" item="j"}
+                                                <option value="{$i}" {if condition="$config.content eq $i"}selected="selected"{/if}>{$j}</option>
+                                                {/foreach}
+                                            </select>
+                                            {/if}
+                                            {if $config.type eq '5'}
+                                            {foreach name=":parse_attr($config.options)" key="i" item="j"}
+                                            <input type="radio" name="config[{$config.id}]" value="{$i}" title="{$j}" {if condition="$config.content eq $i"}checked="checked"{/if}>
+                                            {/foreach}
+                                            {/if}
+                                            {if $config.type eq '3'}
+                                            <input type="text" value="{$config.content|default='#1c97f5'}" placeholder="请选择颜色" class="layui-input" name="config[{$config.id}]">
+                                            {/if}
+                                            {if $config.type eq '6'}
+                                            <input type="number" name="config[{$config.id}]" min="0" max="99" step="1" lay-filter="content" placeholder="" autocomplete="off" class="layui-input" value="{$config.content|default=0}">
+                                            {/if}
+                                        </div>
+                                        {if $config.type eq '3'}
+                                        <div class="layui-inline" style="left: -11px;">
+                                            <div class="content-colorpicker"></div>
+                                        </div>
+                                        {/if}
+                                        {if $config.type eq '6'}
+                                        <div class="layui-form-mid layui-word-aux">%</div>
+                                        {/if}
+                                    </div>
+                                    {/if}
+                                    {/foreach}
+                                    <div class="layui-form-item">
+                                        <div class="layui-input-block">
+                                            <button class="layui-btn" lay-filter="layuiadmin-app-form-submit" lay-submit="">保存</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {/foreach}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

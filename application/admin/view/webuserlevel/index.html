@@ -1,0 +1,51 @@
+{extend name="base" /}
+{block name="table_tpl"}
+<script type="text/html" id="image_tpl">
+    <div class="layui-inline">
+        <img style="display: inline-block; width: 50%; height: 100%;" src= {{ d.image }}>
+    </div>
+</script>
+<script type="text/html" id="state_tpl">
+    <input type="checkbox" name="status" lay-skin="switch" lay-text="显示|隐藏" lay-filter="state_tpl"
+           value="{{ d.status }}" data-json="{{ encodeURIComponent(JSON.stringify(d)) }}" {{ d.status == 1 ? 'checked' : '' }}>
+</script>
+{/block}
+{block name="css"}
+<style>
+    .layui-table-cell{
+        height:auto !important;
+        white-space:normal;
+    }
+</style>
+{/block}
+{block name="table_js"}
+table.render({
+    elem: '#news_type'
+    ,url: '/admin/Webuserlevel/index'
+    ,toolbar: '#top_tool_bar'
+    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+    ,method: 'post'
+    ,cols: [[
+        // {type: 'checkbox', fixed: 'left'},
+        {field:'id', title:'ID', unresize: true, sort: true}
+        ,{field:'image', title:'等级图标', templet: '#image_tpl'}
+        ,{field:'name', title:'名称',}
+        , {field: 'status', title: '状态', sort: true, templet: '#state_tpl', unresize: true}
+        ,{fixed: 'right', title:'操作',width:200, toolbar: '#right_tool_bar'}
+    ]]
+    ,page: true
+    });
+form.on('switch(state_tpl)', function(obj){
+    var json = JSON.parse(decodeURIComponent($(this).data('json')));
+    json = table.clearCacheKey(json);
+    $.ajax({
+        method:'post',
+        type:'json',
+        url:'/admin/Webuserlevel/state',
+        data:{id:json.id,state:(parseInt(json.status) === 1?0:1)},
+        success:function (res) {
+            layer.msg(res.msg);
+        }
+    })
+});
+{/block}

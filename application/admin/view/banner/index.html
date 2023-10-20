@@ -1,0 +1,51 @@
+{extend name="base" /}
+{block name="table_tpl"}
+<script type="text/html" id="image_tpl">
+    <img src="{{ d.image }}" style="width:100px;height:50px">
+</script>
+<script type="text/html" id="type_tpl">
+    {{ d.type == 1?'首页顶部':(d.type == 2?'首页中间':'首页底部')}}
+</script>
+<script type="text/html" id="area_tpl">
+    {{ d.area_id == 0 ? '所有区域' : d.area_name }}
+</script>
+<script type="text/html" id="state_tpl">
+    <input type="checkbox" name="state" lay-skin="switch" lay-text="显示|隐藏" lay-filter="state_tpl"
+           value="{{ d.state }}" data-json="{{ encodeURIComponent(JSON.stringify(d)) }}" {{ d.state == 1 ? 'checked' : '' }}>
+</script>
+{/block}
+{block name="table_js"}
+table.render({
+    elem: '#news_type'
+    ,url: '/admin/banner/index'
+    ,toolbar: '#top_tool_bar'
+    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+    ,title: ''
+    ,method: 'post'
+    ,cols: [[
+        {field:'id', title:'ID', unresize: true, sort: true}
+        ,{field:'area_name', title:'区域', templet:'#area_tpl'}
+        ,{field:'type', title:'广告位置', templet:'#type_tpl'}
+        ,{field:'image', title:'图片', templet:'#image_tpl'}
+        ,{field:'name', title:'名称',}
+        ,{field:'sort', title:'排序', sort: true}
+        ,{field:'state', title:'状态', sort: true, templet: '#state_tpl'}
+        ,{fixed: 'right', title:'操作', toolbar: '#right_tool_bar'}
+    ]]
+    ,page: true
+});
+//监听操作
+form.on('switch(state_tpl)', function(obj){
+    var json = JSON.parse(decodeURIComponent($(this).data('json')));
+    json = table.clearCacheKey(json);
+    $.ajax({
+        method:'post',
+        type:'json',
+        url:'/admin/banner/edit',
+        data:{id:json.id,state:(parseInt(json.state) === 1?0:1)},
+        success:function (res) {
+            layer.msg(res.msg);
+        }
+    })
+});
+{/block}

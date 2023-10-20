@@ -1,0 +1,256 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>任务详情</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="/layuiadmin/style/message/msg.css" media="all">
+    <link rel="stylesheet" href="/layuiadmin/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/layuiadmin/style/admin.css" media="all">
+    <link rel="stylesheet" href="/layuiadmin/dtree/dtree.css?t=142568957" media="all">
+    <link rel="stylesheet" href="/layuiadmin/dtree/font/dtreefont.css?t=142568957" media="all">
+<style>
+    .item {
+        display: flex;
+        background: #ffaa00;
+        color: #ffffff;
+        padding: 0px 0px;
+        text-align: center;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 600;
+        display: block;
+    }
+    .status0 {
+        background: #55aa00;
+    }
+
+    .status1 {
+        background: #ffaa00;
+    }
+
+    .status2 {
+        background: #ff5500;
+    }
+
+    .status3 {
+        background: #ff0000;
+    }
+
+    .status0 {
+        background: #00ff7f;
+    }
+
+    .status4 {
+        background: #aaaa7f;
+    }
+
+    .status5 {
+        background: #00aaff;
+    }
+
+    .status6 {
+        background: #00557f;
+    }
+
+    .status7 {
+        background: #00557f;
+    }
+
+    .status8 {
+        background: #aaaa00;
+    }
+
+    .status9 {
+        background: #00aa00;
+    }
+</style>
+</head>
+<body>
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-header layui-elem-quote">当前位置：<span class="line-text">任务详情</span></div>
+        <div class="layui-card-body">
+
+<!--            <script type="text/html" id="right_tool_bar">-->
+<!--                <a class="layui-btn layui-btn-xs layui-btn-normal" title="编辑" lay-event="right-56"><i class="layui-icon layui-icon layui-icon-edit"></i>编辑</a>-->
+<!--                <a class="layui-btn layui-btn-xs layui-btn-danger" title="删除" lay-event="right-57"><i class="layui-icon layui-icon layui-icon-delete"></i>删除</a>-->
+<!--            </script>-->
+
+            <script type="text/html" id="show_all_tpl">
+                {{ d.show_all == 1 ? '显示所有' : '部分显示' }}
+            </script>
+            <script type="text/html" id="sex_tpl">
+                {{ d.sex == 0 ? '保密' : (d.show_all == 1 ? '女' : '男') }}
+            </script>
+            <table id="news_type" lay-filter="news_type"></table>
+        </div>
+    </div>
+</div>
+
+<script src="/layuiadmin/layui/layui.js"></script>
+
+<script type="text/html" id="zizeng">
+    {{d.LAY_TABLE_INDEX+1}}
+</script>
+<script type="text/html" id="right_tool_bar">
+    <a class="layui-btn layui-btn-xs layui-btn-normal" title="查看详情" lay-event="right-views"><i class="layui-icon layui-icon layui-icon-edit"></i>查看详情</a>
+</script>
+<script id="status_tpl" type="text/html">
+    {{#  if(d.status == 1 ){ }}
+    <span class="item status1">课前任务待完成</span>
+    {{#  } else if(d.status == 2 ){ }}
+    <span class="item status2">课中待考勤</span>
+    {{#  } else if(d.status == 3 ){ }}
+    <span class="item status3">课中待打卡</span>
+    {{#  } else if(d.status == 4 ){ }}
+    <span class="item status4">课中待评价</span>
+    {{#  } else if(d.status == 5 ){ }}
+    <span class="item status5">课前任务待完成</span>
+    {{#  } else if(d.status == 6 ){ }}
+    <span class="item status6">课中待上传</span>
+    {{#  } else if(d.status == 7 ){ }}
+    <span class="item status7">课中待评价</span>
+    {{#  } else if(d.status == 8 ){ }}
+    <span class="item status8">课后任务已完成</span>
+    {{#  } else { }}
+    <span class="item status9">任务已完成</span>
+    {{#  } }}
+</script>
+<script>
+    var table;
+    var form;
+    var admin;
+    var laydate;
+    var dtree;
+    var employeepicker;
+    var $;
+    function dealChecked(data){
+        var list = [];
+        for (let i = 0; i < data.length; i++) {
+            list.push(data[i].id);
+        }
+        return list.join(',');
+    }
+    function doAction(index,layero){
+        var submit = layero.find('iframe').contents().find("#layuiadmin-app-form-submit");
+        submit.click();
+    }
+    layui.config({
+        base: '/layuiadmin/' //静态资源所在路径
+    }).extend({  index: 'lib/index' //主入口模块
+        ,dtree: 'dtree'
+        ,employeepicker: 'employeepicker'
+    }).use(['index', 'contlist','admin', 'table','laydate','dtree','employeepicker','layer'], function() {
+        table = layui.table;
+        form  = layui.form;
+        dtree  = layui.dtree;
+        employeepicker  = layui.employeepicker;
+        $     = layui.$;
+        admin = layui.admin;
+        laydate = layui.laydate;
+        layer = layui.layer;
+
+
+        table.render({
+            elem: '#news_type'
+            ,url: '/admin/v2.census/geTaskList?teacher_id='+{$teacher_id}//--
+            ,toolbar: '#top_tool_bar'
+            ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+            ,title: '任务详情'
+            ,method: 'post'
+            ,cols: [[
+                {field:'zizeng', width:80, title: '序号',fixed: 'left',templet:'#zizeng'}
+                ,{field:'id', title:'任务ID', fixed: 'left', unresize: true, sort: true}
+                ,{field:'image', title:'图片',templet:'<div><img src="{{d.image}}"></div>'}
+                ,{field:'title', title:'任务名称'}
+                ,{field:'depict', title:'任务描述',}
+                ,{field:'rate', title:'完成情况',}
+                ,{field:'type', title:'任务类型',}
+                // ,{field:'status', title:'任务状态', templet: '#status_tpl'}
+                ,{fixed: 'right', title:'操作', toolbar: '#right_tool_bar'}
+            ]]
+            ,page: false
+        });
+
+
+
+        //监听行工具事件
+        table.on('tool(news_type)', function(obj){
+            var data = obj.data;
+            console.log(data,obj.event);
+            switch (obj.event) {
+                case 'right-views':
+                var edit_index = layer.open({
+                        type: 2
+                        ,title: '详情'
+                        ,content: '/admin/v2.census/user_task_info?id='+data.id
+                        ,area: ['90%', '80%']
+                        ,anim:5
+                        ,btn: ['确定', '取消']
+                        ,maxmin:true
+                        ,yes: function(index, layero){
+                            doAction(index, layero);
+                        }
+                    });
+                    break;
+                case 'right-56':
+                    var edit_index = layer.open({
+                        type: 2
+                        ,title: '编辑'
+                        ,content: '/admin/news/edit?id='+data.id
+                        ,area: ['450px', '270px']
+                        ,anim:5
+                        ,btn: ['确定', '取消']
+                        ,maxmin:true
+                        ,yes: function(index, layero){
+                            doAction(index, layero);
+                        }
+                    });
+                    layer.full(edit_index);
+                    break;
+                case 'right-57':
+                    layer.confirm('真的删除行么', function(index){
+                        $.ajax({
+                            method:'post',
+                            type:'json',
+                            data:{},
+                            url:'/admin/news/del?id='+data.id,
+                            success:function (res) {
+                                layer.msg(res.msg);
+                                obj.del();
+                                layer.close(index);
+                            }
+                        })
+                    });
+                    break;
+
+                default:
+                    break;
+            }
+        });
+
+        form.on('submit(table-search)', function(data){
+            var field = data.field;
+            //执行重载
+            table.reload('news_type', {
+                page:{curr:1},
+                where: field
+            });
+            return false;
+        });
+        //清空搜索条件
+        form.on('submit(table-search-empty)', function(data){
+
+            $('#search_form')[0].reset();
+            $('#table-search').click();
+            return false;
+        });
+    });
+</script>
+</body>
+</html>

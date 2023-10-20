@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>后台日志管理</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+
+    <style type="text/css">
+        .layui-card-header .layui-icon {
+            position: inherit;
+        }
+    </style>
+</head>
+<body>
+
+<div class="layui-fluid">
+    <div class="layui-card" style="background: #ffffff;">
+        {if isset($pageName) and !empty($pageName)}
+        <div class="layui-card-header layui-elem-quote">当前位置：<span class="line-text">{$pageName}</span></div>
+        {/if}
+        <div class="layui-tab-content" >
+            <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+                <form id="search_form">
+                    <div class="layui-form-item">
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" name="year" value="{$param['year']|default=''}"
+                                   placeholder="请选择年份" id="year"
+                                   autocomplete="off">
+                        </div>
+                        <div class="layui-input-inline between_time">
+                            <input type="text" class="layui-input" name="between_time" placeholder="请选择起止时间"
+                                   id="between_time" autocomplete="off" value="{$param['between_time']|default=''}">
+                        </div>
+                        <div class="layui-input-inline">
+                            <select name="role_id">
+                                <option value="">请选择角色</option>
+                                {foreach name="roles" item="v"}
+                                <option value="{$v.id}" {if
+                                        condition="isset($param['role_id']) && $param['role_id'] eq $v.id" } selected{
+                                /if}>{$v.name}</option>
+                                {/foreach}
+                            </select>
+                        </div>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" name="keyword" value="{$param['keyword']|default=''}"
+                                   placeholder="请输入用户名" autocomplete="off">
+                        </div>
+                        <div class="layui-input-inline" style="margin-top: -3px;">
+                            <button class="layui-btn ajax-search" style="">搜索</button>
+                            <a class="layui-btn layui-btn-primary" href="/admin/user/log" lay-text="客户列表">清除搜索</a>
+                        </div>
+                        <div class="layui-input-inline" style="margin-top: -3px;">
+                            <a class="layui-btn layui-btn-danger" lay-tips="清空后数据不可恢复！！！" href="/admin/user/tructLogs" lay-text="清空日志">清空日志</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="layui-card-body"  style="background: #ffffff;">
+        <script type="text/html" id="barDemo">
+        </script>
+        <table class="layui-hide" id="test" lay-filter="test"></table>
+        <script type="text/html" id="imgTpl">
+        </script>
+    </div>
+</div>
+</div>
+
+<script src="__style__/layui/layui.js"></script>
+<script>
+    layui.config({
+        base: '../../../layuiadmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'useradmin', 'table', 'laydate'], function () {
+        var $ = layui.$
+            , form = layui.form, setter = layui.setter
+            , table = layui.table, laydate = layui.laydate;
+        laydate.render({
+            elem: '#year', //指定元素
+            type: 'year',
+            trigger: 'click',
+            format: 'yyyy年',
+            done: function (value, date) {
+                $("#between_time").remove();
+                $(".between_time").html('<input type="text" class="layui-input" name="between_time" placeholder="请选择起止时间" id="between_time" autocomplete="off">');
+                laydate.render({
+                    elem: '#between_time', //指定元素
+                    format: 'yyyy年MM月dd日',
+                    value: date.year + "年1月1日 - " + date.year + "年12月31日",
+                    min: date.year + '-1-1',
+                    max: date.year + '-12-31',
+                    range: true
+                });
+            }
+        });
+        laydate.render({
+            elem: '#between_time', //指定元素
+            format: 'yyyy年MM月dd日',
+            range: true
+        });
+        table.render({
+            elem: '#test'
+            , url: '/admin/user/log'
+            , toolbar: '#toolbarDemo' //开启头部工具栏，并为其绑定左侧模板
+            , defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
+                title: '提示'
+                , layEvent: 'LAYTABLE_TIPS'
+                , icon: 'layui-icon-tips'
+            }],
+            where: serializeObject($("#search_form")),
+            method: 'post',
+            limit: '20'
+            , title: '后台日志数据表'
+            , cols: [[
+                {type: 'checkbox', fixed: 'left'}
+                , {field: 'username', title: '管理员', width: 120, edit: 'text'}
+                , {field: 'ip', title: 'IP地址', width: 150}
+                , {field: 'url', title: '请求链接', width: 365}
+                , {field: 'method', title: '请求类型', width: 150}
+                , {field: 'type', title: '资源类型', width: 150}
+                , {field: 'remark', title: '操作行为', width: 150}
+                , {field: 'param', title: '操作参数', width: 300}
+                , {field: 'ctime', title: '操作时间', width: 180}
+            ]]
+            , page: true
+        });
+        $('.ajax-search').click(() => {
+            $(".layui-form").submit();
+        });
+
+        /**
+         *序列化form表单
+         *@param  要序列化的表单的名称
+         *@return 返回对象
+         ***/
+        function serializeObject(form) {
+            var o = {};
+            form.find(".ui-select").each(function (r) {
+                var name = $(this).attr("name");
+                var value = $(this).attr("data-value");
+                o[name] = value;
+            })
+
+            $.each(form.serializeArray(), function (index) {
+                if (o[this['name']]) {
+                    o[this['name']] = o[this['name']] + "," + this['value'];
+                } else {
+                    o[this['name']] = this['value'];
+                }
+            });
+            return o;
+        }
+
+    });
+
+
+</script>
+</body>
+</html>

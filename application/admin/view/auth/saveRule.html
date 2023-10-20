@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+</head>
+<body>
+<div class="layui-form" lay-filter="layuiadmin-form-tags" id="layuiadmin-app-form-tags" style="padding: 20px 30px 20px 0;background-color:#fff">
+    <input type="hidden" name="id" value="{$data.id|default=''}">
+    <div class="layui-form-item">
+        <label class="layui-form-label">上级节点</label>
+        <div class="layui-input-block">
+            <select name="pid" lay-filter="pid">
+                <option value="0">顶级节点</option>
+                {volist name="auth_rule" id="item"}
+                <option value="{$item.id}" {if condition="isset($data) and $data.pid eq $item.id"}selected{/if}>|-- {$item.name}</option>
+                {if isset($item.children)}
+                {volist name="$item.children" id="vo"}
+                <option value="{$vo.id}" {if condition="isset($data) and $data.pid eq $vo.id"}selected{/if}>　|-- {$vo.name}</option>
+                {if isset($vo.children)}
+                {volist name="$vo.children" id="vv"}
+                <option value="{$vv.id}" {if condition="isset($data) and $data.pid eq $vv.id"}selected{/if}>　　　|-- {$vv.name}</option>
+                {/volist}
+                {/if}
+                {/volist}
+                {/if}
+                {/volist}
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">名称</label>
+        <div class="layui-input-block">
+            <input name="name" value="{$data.name|default=''}" type="text" class="layui-input" placeholder="请输入名称">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">控制器</label>
+        <div class="layui-input-block">
+            <input name="url" value="{$data.url|default=''}" type="text" placeholder="admin/index/index" class="layui-input" placeholder="请输入控制器">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">图标</label>
+        <div class="layui-input-inline">
+            <input name="icon" value="{$data.icon|default=''}" type="text" placeholder="fa fa-image" class="layui-input" placeholder="请输入图标">
+        </div>
+        <button class="layui-btn layui-btn-primary ajax-icon" lay-filter="chooseIcon">选择图标</button>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">菜单显示</label>
+        <div class="layui-input-block">
+            <input type="radio" name="type" lay-filter="type" value="nav" title="是" {if empty($data) or isset($data) and $data.type eq 'nav'}checked="checked"{/if}>
+            <input type="radio" name="type" lay-filter="type" value="auth" title="否" {if isset($data) and $data.type eq 'auth'}checked="checked"{/if}>
+        </div>
+    </div>
+    <div class="layui-form-item perm-div" style="display:{if isset($data) and $data.type eq 'auth'}block{else/}none{/if}">
+        <label class="layui-form-label">按钮位置</label>
+        <div class="layui-input-block">
+            <select name="perm" lay-filter="perm">
+                <option value=""></option>
+                <option value="top" {if condition="isset($data) and $data.perm eq 'top'"}selected{/if}>表格顶部</option>
+                <option value="right" {if condition="isset($data) and $data.perm eq 'right'"}selected{/if}>表格右部</option>
+                <option value="search" {if condition="isset($data) and $data.perm eq 'search'"}selected{/if}>表格搜索</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item nav-perm-div" style="display:{if isset($data) and $data.type eq 'auth' and $data.perm eq 'top'}block{else/}none{/if}">
+        <label class="layui-form-label">批量操作</label>
+        <div class="layui-input-block">
+            <input type="radio" name="is_batch_btn" lay-filter="is_batch_btn" value="1" title="是" {if isset($data) and $data.is_batch_btn eq 1}checked="checked"{/if}>
+            <input type="radio" name="is_batch_btn" lay-filter="is_batch_btn" value="0" title="否" {if empty($data) or isset($data) and $data.is_batch_btn eq 0}checked="checked"{/if}>
+        </div>
+    </div>
+    <div class="layui-form-item perm-div" style="display:{if isset($data) and $data.type eq 'auth'}block{else/}none{/if}">
+        <label class="layui-form-label">按钮风格</label>
+        <div class="layui-input-block">
+            <select name="btn_style" lay-filter="btn_style">
+                <option value="">默认按钮</option>
+                <option value="layui-btn-primary" {if condition="isset($data) and $data.btn_style eq 'layui-btn-primary'"}selected{/if}>原始按钮</option>
+                <option value="layui-btn-normal" {if condition="isset($data) and $data.btn_style eq 'layui-btn-normal'"}selected{/if}>百搭按钮</option>
+                <option value="layui-btn-warm" {if condition="isset($data) and $data.btn_style eq 'layui-btn-warm'"}selected{/if}>暖色按钮</option>
+                <option value="layui-btn-danger" {if condition="isset($data) and $data.btn_style eq 'layui-btn-danger'"}selected{/if}>警告按钮</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item perm-div" style="display:{if isset($data) and $data.type eq 'auth'}block{else/}none{/if}">
+        <label class="layui-form-label">删除按钮</label>
+        <div class="layui-input-block">
+            <input type="radio" name="is_del_btn" lay-filter="is_del_btn" value="1" title="是" {if isset($data) and $data.is_del_btn eq 1}checked="checked"{/if}>
+            <input type="radio" name="is_del_btn" lay-filter="is_del_btn" value="0" title="否" {if empty($data) or isset($data) and $data.is_del_btn eq 0}checked="checked"{/if}>
+        </div>
+    </div>
+    <div class="layui-form-item perm-div nav-view-view" style="display:{if isset($data) and $data.type eq 'auth'}block{else/}none{/if}">
+        <label class="layui-form-label">弹层按钮</label>
+        <div class="layui-input-block">
+            <input type="radio" name="view" lay-filter="view" value="1" title="不带" {if isset($data) and $data.view eq 1}checked="checked"{/if}>
+            <input type="radio" name="view" lay-filter="view" value="0" title="带" {if empty($data) or isset($data) and $data.view eq 0}checked="checked"{/if}>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">排序</label>
+        <div class="layui-input-block">
+            <input name="sort_order" value="{$data.sort_order|default='0'}" type="text" placeholder="fa fa-image" class="layui-input" placeholder="请输入图标">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">状态</label>
+        <div class="layui-input-block">
+            <select name="status" lay-filter="status">
+                <option value="1" {if condition="empty($data) or isset($data) and $data.status eq 1"}selected{/if}>正常</option>
+                <option value="0" {if condition="isset($data) and $data.status eq 0"}selected{/if}>禁用</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item layui-hide">
+        <input type="button" lay-submit lay-filter="component-form-element" id="layuiadmin-app-form-submit" value="确定">
+    </div>
+</div>
+<script src="__style__/layui/layui.js"></script>
+<script>
+    var action = '{$action}';
+    layui.config({
+        base: '../../../layuiadmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'form'], function() {
+        var $ = layui.$,
+            admin = layui.admin,
+            element = layui.element,
+            setter = layui.setter,
+            form = layui.form;
+        var user=localStorage.getItem("session");
+        form.render(null, 'component-form-element');
+        element.render('breadcrumb', 'breadcrumb');
+
+        form.on('submit(component-form-element)', function(data) {
+            //layer.msg(JSON.stringify(data.field));
+            var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+            var d=data.field
+            $.ajax({
+                type: 'post',
+                url: '/admin/auth/'+ action,
+                data: d,
+                success: function(res) {
+                    layer.msg(res.msg)
+                    if (res.code == 200) {
+                        setTimeout(function () {
+                            parent.location.reload(); //重载加载页面
+                            parent.layer.close(index); //再执行关闭
+                        },1000);
+                    }
+                },
+               error:function(e){
+                   layer.alert("提交失败！");
+                   return false;
+               }
+            });
+        });
+        form.on('radio(type)',function (data) {
+            console.log(data);
+            $('.nav-perm-div').hide();
+            $('.perm-div').hide();
+            if(data.value === 'auth'){
+                $('.perm-div').show();
+                $('.nav-perm-div').show();
+            }
+        });
+        form.on('select(perm)',function (data) {
+            $('.nav-perm-div').hide();
+            if(data.value === 'top'){
+                $('.nav-perm-div').show();
+            }
+        });
+        form.on('select(is_del_btn)',function (data) {
+            $('.nav-view-view').hide();
+            if(data.value === 1){
+                $('.nav-view-view').show();
+            }
+        });
+        // 添加图标
+        $('.ajax-icon').on('click', function () {
+            var url = $(this).attr('href');
+            var index = layer.open({
+                title: '选择图标',
+                type: 2,
+                area: ['100%', '100%'],
+                content: '/admin/index/iconLibs'
+            });
+            return false;
+        });
+    });
+</script>
+</body>
+
+</html>

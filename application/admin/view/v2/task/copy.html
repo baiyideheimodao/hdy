@@ -1,0 +1,1178 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <!--<link rel="stylesheet" href="__style__/layui/css/formSelects-v4.css"/>-->
+    <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+    <link rel="stylesheet" href="__style__/dtree/dtree.css?t=142568957" media="all">
+    <link rel="stylesheet" href="__style__/dtree/font/dtreefont.css?t=142568957" media="all">
+    <link rel="stylesheet" href="/kindeditor/themes/default/default.css" />
+    <script src="/kindeditor/kindeditor-all.js"></script>
+    <script src="/kindeditor/lang/zh-CN.js"></script>
+    <script>
+        var editor;
+        var picword_editor;
+        var pass_content_editor;
+        var no_pass_content_editor;
+        KindEditor.ready(function(K) {
+            editor = K.create('textarea[name="content"]', {
+                filterMode: false,//不开启html过滤模式，则读取值可以直接在textarea中显示
+                pasteType: 1,
+                afterBlur: function () {
+                    this.sync();
+                }//同步回去后当做是input进行ajax提交即可
+            });
+            picword_editor = K.create('textarea[name="picword"]', {
+                filterMode: false,//不开启html过滤模式，则读取值可以直接在textarea中显示
+                pasteType: 1,
+                afterBlur: function () {
+                    this.sync();
+                }//同步回去后当做是input进行ajax提交即可
+            });
+            pass_content_editor = K.create('textarea[name="pass_text"]', {
+                filterMode: false,//不开启html过滤模式，则读取值可以直接在textarea中显示
+                pasteType: 1,
+                afterBlur: function () {
+                    this.sync();
+                }//同步回去后当做是input进行ajax提交即可
+            });
+            no_pass_content_editor = K.create('textarea[name="no_pass_text"]', {
+                filterMode: false,//不开启html过滤模式，则读取值可以直接在textarea中显示
+                pasteType: 1,
+                afterBlur: function () {
+                    this.sync();
+                }//同步回去后当做是input进行ajax提交即可
+            });
+        });
+    </script>
+    <style>
+        .me-selected-table table thead tr{
+            background-color:#009688;
+            color:#FFF;
+            text-align:center !important;
+        }
+        .me-selected-table table{
+            border-color:#009688;
+        }
+        .me-level-box{
+            border:1px dashed gray;
+            margin-left:110px;
+            margin-bottom:15px;
+            padding-top:15px;
+            padding-right:15px;
+        }
+        .me-dash-box{
+            border: 1px dashed lightgray;
+            line-height: 36px;
+            text-align: left;
+            color: #999;
+            padding: 0 10px;
+            cursor:pointer;
+        }
+        .layui-upload .view{
+            position: absolute;
+            left: 200px;
+            top: 5px;
+            z-index: 10;
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+            background: rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .layui-upload .close{
+            position: absolute;
+            left: 250px;
+            top: 5px;
+            z-index: 10;
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+            background: rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div id="task_box" class="layui-card" style="display:none;">
+    <script type="text/html" id="type_tpl">
+        {{ d.type == 1 ? '<button class="layui-btn layui-btn-normal layui-btn-xs">是</button>' : '<button class="layui-btn layui-btn-danger layui-btn-xs">否</button>' }}
+    </script>
+    <div class="layui-card-body">
+        <form class="layui-form layui-center" id="search_form">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">题型</label>
+                    <div class="layui-input-block">
+                        <select name="type"  lay-filter="filter-type" class="layui-select">
+                            <option value=""></option>
+                            <option value="1">记录题</option>
+                            <option value="0">非记录题</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <label class="layui-form-label">科目</label>
+                    <div class="layui-input-block">
+                        <select name="subject_id" class="layui-select" lay-filter="subject_id">
+                            <option value=""></option>
+                            {volist name="subject" id="item"}
+                            <option value="{$item.id}">{$item.name}</option>
+                            {/volist}
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <label class="layui-form-label">版本</label>
+                    <div class="layui-input-block">
+                        <select name="version_id" class="layui-select" lay-filter="version_id">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <label class="layui-form-label">项目</label>
+                    <div class="layui-input-block">
+                        <select name="project_id" class="layui-select" lay-filter="project_id">
+                            <option value=""></option>
+                            {volist name="project" id="item"}
+                            <option value="{$item.id}">{$item.name}</option>
+                            {/volist}
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <label class="layui-form-label">名称</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="name" placeholder="请输入" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-inline control-hide-2 control-show-1">
+                    <label class="layui-form-label">页码</label>
+                    <div class="layui-input-inline" style="width: 100px;">
+                        <input type="number" value="0" name="page_num_start" placeholder="开始页" autocomplete="off" class="layui-input">
+                    </div>
+                    <div class="layui-form-mid">-</div>
+                    <div class="layui-input-inline" style="width: 100px;">
+                        <input type="number" value="0" name="page_num_end" placeholder="结束页" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-inline control-hide-2 control-show-1">
+                    <label class="layui-form-label">级别</label>
+                    <div class="layui-input-block">
+                        <select name="level" lay-filter="level">
+                            <option value=""></option>
+                            <option value="1">尖子</option>
+                            <option value="2">培优</option>
+                            <option value="3">基础</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <button class="layui-btn layuiadmin-btn-order" lay-submit lay-filter="table-search" id="table-search">搜索</button>
+                    <button class="layui-btn layui-btn-primary" lay-submit lay-filter="table-search-empty">清除搜索</button>
+                </div>
+            </div>
+        </form>
+        <table id="task_list" lay-filter="task_list"></table>
+    </div>
+</div>
+<div class="layui-form" lay-filter="layuiadmin-form-tags" id="layuiadmin-app-form-tags" style="padding: 20px 30px 20px 0;background-color:#fff">
+    <input name="id" type="hidden" value="{$info.id|default=''}">
+    <input name="type" type="hidden" value="{$info.type}">
+    <input name="mode" type="hidden" value="{$info.mode}">
+    <input name="image" class="image" value="{$info.image|default='/static/webchat/logo.png'}" type="hidden">
+    <div class="layui-form-item">
+        <label class="layui-form-label">封面</label>
+        <div class="layui-input-block">
+            <div class="layui-upload" style="position: relative;">
+                <div class="view">
+                    <i class="layui-icon layui-icon-picture-fine" style="font-size: 30px; color: #1E9FFF;" onclick="viewFun()"></i>
+                </div>
+                <div class="close">
+                    <i class="layui-icon layui-icon-close" style="font-size: 30px; color: #1E9FFF;" onclick="emptyFun()"></i>
+                </div>
+                <div class="layui-upload-drag" id="task_images">
+                    {if condition="!isset($info) or $info.image eq ''"}
+                    <i class="layui-icon"></i>
+                    <p>点击上传缩率图，或将文件拖拽到此处</p>
+                    {else/}
+                    <img class="layui-upload-img" src="{$info['image']}" >
+                    {/if}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">标题</label>
+        <div class="layui-input-block">
+            <input name="title" value="{$info.title|default=''}" type="text" class="layui-input" placeholder="项目标题" autocomplete="off" required>
+            <div class="layui-form-mid layui-word-aux">显示在项目列表中</div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">描述</label>
+        <div class="layui-input-block">
+            <textarea class="layui-textarea" name="depict" placeholder="项目描述" required>{$info.depict|default=''}</textarea>
+            <div class="layui-form-mid layui-word-aux">显示在项目列表中</div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">执行日期</label>
+        <div class="layui-input-block">
+            <div class="layui-input-inline">
+                <input type="text" class="layui-input" name="start_date" id="test-laydate-start" placeholder="开始日期" autocomplete="off" required>
+            </div>
+            <div class="layui-form-mid">
+                -
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" class="layui-input" name="end_date" id="test-laydate-end" placeholder="结束日期" autocomplete="off" required>
+            </div>
+            <div class="layui-form-mid layui-word-aux">执行日期设置，如2022-07-12 - 2022-08-01 表示日期范围为2022-07-12零点开始，至2022-08-01零点结束</div>
+        </div>
+    </div>
+    {if condition="$info.type eq 11 or $info.type eq 23"}
+    <div class="layui-form-item">
+        <label class="layui-form-label">任务库选择</label>
+        <div class="layui-input-block">
+            <input type="hidden" name="task_id" value="" required>
+            <input name="task_name" value="{$info.task_name|default=''}" type="text" class="layui-input" placeholder="选择任务库" readonly>
+        </div>
+    </div>
+    <div id="task_list_box">
+        <!--存放被选择的任务信息-->
+    </div>
+    {/if}
+    {if condition="$info.type eq 11"}
+    <div class="layui-form-item">
+        <label class="layui-form-label">班级选择</label>
+        <div class="layui-input-block">
+            <input type="hidden" name="class_ids" value="" required>
+            <input name="class_names" value="{$info.class_names|default=''}" data-id="class_ids" data-tpl="checkClasses" data-level="5" type="text" class="layui-input" placeholder="选择班级" readonly>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">教师选择</label>
+        <div class="layui-input-block me-dash-box me-selected-table" name="class_names_box">
+            <span class="me-span" data-name="class_names">请先选择班级</span>
+        </div>
+    </div>
+    {else/}
+    {if condition="$info.type eq 13 or $info.type eq 21 or $info.type eq 22"}
+    <div class="layui-form-item">
+        <label class="layui-form-label">基地选择</label>
+        <div class="layui-input-block">
+            <input type="hidden" name="base_ids" value="" required>
+            <input name="bases_names" value="{$info.bases_names|default=''}" data-id="base_ids" data-tpl="checkBases" data-level="4" type="text" class="layui-input" placeholder="选择基地" readonly>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">教师选择</label>
+        <div class="layui-input-block me-dash-box me-selected-table" name="bases_names_box">
+            <span class="me-span" data-name="bases_names">请先选择基地</span>
+        </div>
+    </div>
+    {/if}
+    {if condition="$info.mode eq 1"}
+    <div class="layui-form-item">
+        <label class="layui-form-label">班级选择</label>
+        <div class="layui-input-block">
+            <input type="hidden" name="class_ids" value="" required>
+            <input name="class_names" value="{$info.class_names|default=''}" data-id="class_ids" data-tpl="checkClasses" data-level="5" type="text" class="layui-input" placeholder="选择班组" readonly>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">教师选择</label>
+        <div class="layui-input-block me-dash-box me-selected-table" name="class_names_box">
+            <span class="me-span" data-name="class_names">请先选择班级</span>
+        </div>
+    </div>
+    {/if}
+    {if condition="$info.type eq 23"}
+    <div class="layui-form-item">
+        <label class="layui-form-label">评委老师</label>
+        <div class="layui-input-block">
+            <div id="teacher_id"></div>
+        </div>
+    </div>
+    {/if}
+    {if condition="$info.mode eq 2"}
+    <div class="layui-form-item">
+        <label class="layui-form-label">范围选择</label>
+        <div class="layui-input-block">
+            <div class="layui-form-mid layui-word-aux">设置范围，用于限制活动的发布范围</div>
+        </div>
+    </div>
+    <div class="me-level-box">
+        <div class="layui-form-item">
+            <label class="layui-form-label">区县选择</label>
+            <div class="layui-input-block">
+                <input type="hidden" name="area_ids" value="">
+                <input name="area_names" value="{$info.area_names|default=''}" data-id="area_ids" data-tpl="checkAreas" data-level="3" type="text" class="layui-input" placeholder="选择区县" readonly>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">学校选择</label>
+            <div class="layui-input-block">
+                <div id="school_id">
+                    <select name="school_id" class="layui-input" placeholder="学校选择">
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">年级选择</label>
+            <div class="layui-input-block">
+                <div id="grade_id"></div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">限制人数</label>
+        <div class="layui-input-inline">
+            <input name="person_num" value="{$info.person_num|default=''}" type="text" class="layui-input" placeholder="限制人数" autocomplete="off" required>
+        </div>
+        <div class="layui-form-mid layui-word-aux">设置活动限制人数，0表示不限制</div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">活动介绍</label>
+        <div class="layui-input-block" style="width:calc(100% - 115px); margin-right: 0px; height:400px;">
+            <textarea name="picword" id="picword" cols="" rows="" class="textinput" style="width:100%;height:400px;" required>{$info.picword|default=""}</textarea>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">勋章设置</label>
+        <div class="layui-input-inline">
+            <button type="button" class="layui-btn layui-btn-fluid layui-btn-primary" id="addBrage"><i class="layui-icon layui-icon-addition"></i>添加勋章</button>
+        </div>
+    </div>
+    <div class="me-level-box me-selected-table" style="padding-left:15px;">
+        <table class="layui-table">
+            <colgroup>
+                <col width="150">
+                <col width="150">
+                <col width="150">
+                <col width="150">
+                <col width="200">
+                <col>
+            </colgroup>
+            <thead>
+            <tr>
+                <th>名称</th>
+                <th>最小分值</th>
+                <th>最大分值</th>
+                <th>图片</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody id="brage_box">
+
+            </tbody>
+        </table>
+    </div>
+    {/if}
+    {if condition="$info.type neq 23"}
+    <div class="layui-form-item">
+        <label class="layui-form-label">课前任务</label>
+        <div class="layui-input-block">
+            <input type="hidden" name="task_id" value="" required>
+            <input name="task_name" value="{$info.task_name|default=''}" type="text" class="layui-input" placeholder="选择课前任务" readonly>
+        </div>
+    </div>
+    <div id="task_list_box">
+        <!--存放被选择的任务信息-->
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">修改课中</label>
+        <div class="layui-input-block">
+            <input type="radio" name="edit_tasking" lay-filter="edit_tasking" value="1" title="修改">
+            <input type="radio" name="edit_tasking" lay-filter="edit_tasking" value="0" title="不修改" checked="">
+        </div>
+    </div>
+    <div class="me-level-box" style="display: none;" id="tasking-box">
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否考勤</label>
+            <div class="layui-input-block">
+                <input type="radio" name="is_record" lay-filter="is_record" value="1" title="是" checked="">
+                <input type="radio" name="is_record" lay-filter="is_record" value="0" title="否">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否评价</label>
+            <div class="layui-input-block">
+                <input type="radio" name="is_eval" lay-filter="is_eval" value="1" title="是" checked="">
+                <input type="radio" name="is_eval" lay-filter="is_eval" value="0" title="否">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否传图</label>
+            <div class="layui-input-block">
+                <input type="radio" name="is_upt_img" lay-filter="is_upt_img" value="1" title="是" checked="">
+                <input type="radio" name="is_upt_img" lay-filter="is_upt_img" value="0" title="否">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否传文字</label>
+            <div class="layui-input-block">
+                <input type="radio" name="is_upt_word" lay-filter="is_upt_word" value="1" title="是" checked="">
+                <input type="radio" name="is_upt_word" lay-filter="is_upt_word" value="0" title="否">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">有效天数</label>
+        <div class="layui-input-inline">
+            <input name="avail_days" value="{$info.avail_days|default=''}" type="text" class="layui-input" placeholder="有效天数" autocomplete="off" required>
+        </div>
+        <div class="layui-form-mid layui-word-aux">设置课中完成后几天有效</div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">课后任务</label>
+        <div class="layui-input-block">
+            <input type="hidden" name="tasked_id" value="" required>
+            <input name="tasked_name" value="{$info.tasked_name|default=''}" type="text" class="layui-input" placeholder="选择课后任务" readonly>
+        </div>
+    </div>
+    <div id="tasked_list_box">
+        <!--存放被选择的任务信息-->
+    </div>
+    {/if}
+    {if condition="$info.type eq 23"}
+    <div class="layui-form-item">
+        <label class="layui-form-label">结果显示</label>
+        <div class="layui-input-inline">
+            <input type="radio" name="show_result" lay-filter="show_result" value="1" title="显示">
+            <input type="radio" name="show_result" lay-filter="show_result" value="0" title="隐藏" checked="">
+        </div>
+        <div class="layui-form-mid layui-word-aux">设置劳动大赛结束是否通过显示内容</div>
+    </div>
+    <div class="me-level-box" style="display: none;" id="result-box">
+        <div class="layui-form-item">
+            <label class="layui-form-label">通过内容</label>
+            <div class="layui-input-block" style="width:calc(100% - 115px); margin-right: 0px; height:400px;">
+                <textarea name="pass_text" id="pass_content" cols="" rows="" class="textinput" style="width:100%;height:400px;">{$info.pass_text|default=""}</textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">未通过内容</label>
+            <div class="layui-input-block" style="width:calc(100% - 115px); margin-right: 0px; height:400px;">
+                <textarea name="no_pass_text" id="no_pass_content" cols="" rows="" class="textinput" style="width:100%;height:400px;">{$info.no_pass_text|default=""}</textarea>
+            </div>
+        </div>
+    </div>
+    {else/}
+    <div class="layui-form-item">
+        <label class="layui-form-label">内容</label>
+        <div class="layui-input-block" style="width:calc(100% - 115px); margin-right: 0px; height:400px;">
+            <textarea name="content" id="content" cols="" rows="" class="textinput" style="width:100%;height:400px;">{$info.content|default=""}</textarea>
+        </div>
+    </div>
+    {/if}
+    {/if}
+    <div class="layui-form-item">
+        <label class="layui-form-label">难度分</label>
+        <div class="layui-input-block">
+            <select name="difficulty_points">
+                <option value="1">1分</option>
+                <option value="2">2分</option>
+                <option value="3">3分</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">任务状态</label>
+        <div class="layui-input-block">
+            <input type="radio" name="status" lay-filter="status" value="1" title="发布">
+            <input type="radio" name="status" lay-filter="status" value="0" title="待发布" checked="">
+        </div>
+    </div>
+    <div class="layui-form-item layui-hide">
+        <input type="button" lay-submit lay-filter="layuiadmin-app-form-submit" id="layuiadmin-app-form-submit" value="确定">
+    </div>
+</div>
+<script src="__style__/layui/layui.js"></script>
+<!--<script src="__style__/layui/formSelects-v4.js"></script>-->
+<script src="__JS__/xm-select.js"></script>
+<script>
+    layui.config({
+        base: '__style__/' //静态资源所在路径
+    }).extend({  index: 'lib/index', //主入口模块
+        dtree: 'dtree',
+    }).use(['index', 'form','upload','table','layer','laydate','dtree','croppers'], function(){
+        var $ = layui.$
+            ,upload = layui.upload
+            ,dtree = layui.dtree
+            ,table = layui.table
+            ,croppers = layui.croppers
+            ,laydate = layui.laydate
+            ,layer = layui.layer
+            ,form = layui.form ;
+        var insStart = laydate.render({
+            elem: '#test-laydate-start'
+            ,min: 0
+            ,done: function(value, date){
+                //更新结束日期的最小日期
+                insEnd.config.min = lay.extend({}, date, {
+                    month: date.month - 1
+                });
+
+                //自动弹出结束日期的选择器
+                insEnd.config.elem[0].focus();
+            }
+        });
+
+        //结束日期
+        var insEnd = laydate.render({
+            elem: '#test-laydate-end'
+            ,min: 0
+            ,done: function(value, date){
+                //更新开始日期的最大日期
+                insStart.config.max = lay.extend({}, date, {
+                    month: date.month - 1
+                });
+            }
+        });
+
+        //封面图片上传
+        croppers.render({
+            elem: '#task_images'
+            ,saveW:340     //保存宽度
+            ,saveH:200   //保存高度
+            ,mark:7/4    //选取比例
+            ,area:'900px'  //弹窗宽度
+            , url: '/admin/question/upload_pic'
+            , done: function (res) {
+                //如果上传失败
+                if (res.code > 0) {
+                    return layer.msg('上传失败');
+                }else{
+                    $('#task_images').html('<img class="layui-upload-img" src="' + res.data.src + '" width="300">');
+                    $('input[name=image]').val(res.data.src);
+                }
+            }
+            , error: function () {
+                //演示失败状态，并实现重传
+                $('#task_images').html('<i class="layui-icon"></i><p>点击上传，或将文件拖拽到此处</p>');
+            }
+        });
+        function renderLayDate(laydateIds) {
+            for(var i in laydateIds){
+                laydate.render({
+                    elem: laydateIds[i]
+                    ,min: $("#test-laydate-start").val()
+                    ,max: $("#test-laydate-end").val()
+                    ,trigger: "click"//加入click事件
+                    ,done: function(value, date){
+                        console.log(value)
+                        console.log(date)
+                    }
+                });
+            }
+        }
+        function combinTaskedHtml(id,data) {
+            var html = '';
+            var record_table = '';
+            var no_table = '';
+            var task_names = [];
+            var options = '';
+            for(var i = 1;i<= $("input[name=avail_days]").val();i++){
+                options += "<option value='"+i+"'>"+i+"</option>";
+            }
+            for(var i in data){
+                if(data[i].type == 1){
+                    for(var j = 0;j<data[i].times;j++){
+                        if(j == 0){
+                            record_table += '<tr><td rowspan="'+data[i].times+'">'+data[i].name+'</td><td><select name="record_table" data-id="'+data[i].id+'" data-type="2">'+options+'</select></td></tr>';
+                        }else{
+                            record_table += '<tr><td><select name="record_table" data-id="'+data[i].id+'" data-type="2">'+options+'</select></td></tr>';
+                        }
+                    }
+                }else{
+                    no_table += '<tr><td><span name="no_table" data-id="'+data[i].id+'" data-type="2">'+data[i].id+'</span></td><td>'+data[i].name+'</td></tr>';
+                }
+                task_names.push(data[i].name);
+            }
+            html += `<div class="layui-form-item">
+                        <label class="layui-form-label">已选任务</label>
+                        <div class="layui-input-block me-selected-table">
+                            `+(record_table == ''?'':`<table class="layui-table">
+                                <colgroup>
+                                  <col width="150">
+                                  <col>
+                                </colgroup>
+                                <thead>
+                                  <tr>
+                                    <th>任务库</th>
+                                    <th>后几天执行</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  `+record_table+`
+                                </tbody>
+                              </table>`)+(no_table == ''?'':`<table class="layui-table">
+                                <colgroup>
+                                  <col width="150">
+                                  <col>
+                                </colgroup>
+                                <thead>
+                                  <tr>
+                                    <th>任务库ID</th>
+                                    <th>名称</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  `+no_table+`
+                                </tbody>
+                              </table>`)+`
+                        </div>
+                    </div>`;
+            $('#'+id).html(html);
+            form.render();
+            $('input[name=tasked_name]').val(task_names.join(','));
+        }
+        function combinTaskHtml(id,data) {
+            var html = '';
+            var record_table = '';
+            var no_table = '';
+            var laydateIds = [];
+            var task_names = [];
+            for(var i in data){
+                if(data[i].type == 1){
+                    for(var j = 0;j<data[i].times;j++){
+                        if(j == 0){
+                            record_table += '<tr><td rowspan="'+data[i].times+'">'+data[i].name+'</td><td><input type="text" class="layui-input me-date-box" name="record_table" data-id="'+data[i].id+'" data-type="1" id="test-limit-'+data[i].id+'-'+j+'" placeholder="yyyy-MM-dd" autocomplete="off" readonly></td></tr>';
+                        }else{
+                            record_table += '<tr><td><input type="text" class="layui-input me-date-box" name="record_table" data-id="'+data[i].id+'" data-type="1" id="test-limit-'+data[i].id+'-'+j+'" placeholder="yyyy-MM-dd" autocomplete="off" readonly></td></tr>';
+                        }
+                        laydateIds.push('#test-limit-'+data[i].id+'-'+j);
+                    }
+                }else{
+                    no_table += '<tr><td><span name="no_table" data-id="'+data[i].id+'">'+data[i].id+'</span></td><td>'+data[i].name+'</td></tr>';
+                }
+                task_names.push(data[i].name);
+            }
+            html += `<div class="layui-form-item">
+                        <label class="layui-form-label">已选任务</label>
+                        <div class="layui-input-block me-selected-table">
+                            `+(record_table == ''?'':`<table class="layui-table">
+                                <colgroup>
+                                  <col width="150">
+                                  <col>
+                                </colgroup>
+                                <thead>
+                                  <tr>
+                                    <th>任务库</th>
+                                    <th>执行日期</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  `+record_table+`
+                                </tbody>
+                              </table>`)+(no_table == ''?'':`<table class="layui-table">
+                                <colgroup>
+                                  <col width="150">
+                                  <col>
+                                </colgroup>
+                                <thead>
+                                  <tr>
+                                    <th>任务库ID</th>
+                                    <th>名称</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  `+no_table+`
+                                </tbody>
+                              </table>`)+`
+                        </div>
+                    </div>`;
+            $('#'+id).html(html);
+            $('input[name=task_name]').val(task_names.join(','));
+            renderLayDate(laydateIds);
+        }
+
+        function openLayer(obj,url,text,type,callback) {
+            var choosesName = $(obj).attr('name');
+            var choosesId = $(obj).attr('data-id');
+            var tplId = $(obj).attr('data-tpl');
+            var level = $(obj).attr('data-level');
+            var tpl='<div style="width:382px; height:338px;overflow-y: auto;">\
+						<div id="'+tplId+'" style="padding:10px 0;"></div>\
+					</div>';
+            layer.open({
+                type:1,
+                title:'选择'+text,
+                area:['400px','450px'],
+                content:tpl,
+                success:function(){
+                    $.ajax({
+                        url: url,
+                        type:'post',
+                        success:function(res){
+                            dtree.render({
+                                elem: "#"+tplId,
+                                data: res.trees,
+                                icon: "2",  //修改二级图标样式
+                                checkbarType: "no-all", // 默认就是all，其他的值为： no-all  p-casc   self  only
+                                checkbar: parseInt(type) === 0  //开启复选框
+                            });
+                        }
+                    });
+                },
+                btn: ['确定'],
+                btnAlign:'c',
+                yes: function(){
+                    if(type == 0){
+                        var ids=[],names=[];
+                        var check=dtree.getCheckbarNodesParam(tplId);
+                        if(check.length==0){
+                            layer.msg('请选择'+text);
+                            return;
+                        }
+                        var num = 0;
+                        for(var m=0; m<check.length; m++){
+                            if(parseInt(check[m].level) > (parseInt(level)-1)){
+                                ids.push(check[m].nodeId);
+                                names.push(check[m].context);
+                                num ++;
+                            }
+                        }
+                        if(num == 0){
+                            layer.msg('请选择'+text);
+                            return;
+                        }
+                        $('[name="'+choosesName+'"]').val(names.join(','));
+                        $('[name="'+choosesId+'"]').val(ids.join(','));
+                    }else{
+                        var check=dtree.getNowParam(tplId);
+                        if(check.length==0){
+                            layer.msg('请选择'+text);
+                            return;
+                        }
+                        if(check.level < 4){
+                            layer.msg('请选择'+text);
+                            return;
+                        }
+                        $('[name="'+choosesName+'"]').val(check.context);
+                        $('[name="'+choosesId+'"]').val(check.nodeId);
+                        ids = [check.nodeId];
+                        names = [check.context];
+                    }
+                    callback(ids,names);
+                    layer.closeAll();
+                }
+            })
+        }
+
+        $('.me-dash-box').on('click',function () {
+            let span = $(this).find('span[class="me-span"]');
+            if(span){
+                $("[name="+span.attr('data-name')+"]").click();
+                return false;
+            }
+        });
+
+        $('#addBrage').on('click',function () {
+            var _id = (new Date()).getTime();
+            var rows = `
+                <tr>
+                    <td><input name="brage['`+_id+`'][name]" class="layui-input" type="text" placeholder="勋章名称"></td>
+                    <td><input name="brage['`+_id+`'][min_score]" class="layui-input" type="number" min="0" max="100" step="1" placeholder="最小分值"></td>
+                    <td><input name="brage['`+_id+`'][max_score]" class="layui-input" type="number" min="0" max="100" step="1" placeholder="最大分值"></td>
+                    <td>
+                        <div class="layui-upload">
+                          <div class="layui-upload-list">
+                            <img class="layui-upload-img" id="brage_`+_id+`" src="/static/admin/images/blank.png" style="width:80px;height: 80px;border: 1px dashed gray;">
+                            <input name="brage['`+_id+`'][image]" type="hidden" id="brage_img_`+_id+`">
+                          </div>
+                        </div>
+                    </td>
+                    <td><button class="layui-btn layui-btn-sm layui-btn-danger me-act-remove">删除</button></td>
+                </tr>
+            `;
+            $('#brage_box').append(rows);
+            upload.render({
+                elem: '#brage_'+_id
+                ,url: '/admin/question/upload_pic' //此处用的是第三方的 http 请求演示，实际使用时改成您自己的上传接口即可。
+                ,before: function(obj){
+                    //预读本地文件示例，不支持ie8
+                    obj.preview(function(index, file, result){
+                        $('#brage_'+_id).attr('src', result); //图片链接（base64）
+                    });
+                    layer.msg('上传中', {icon: 16, time: 0});
+                }
+                ,done: function(res){
+                    //如果上传失败
+                    if(res.code > 0){
+                        return layer.msg('上传失败');
+                    }
+                    layer.msg('上传成功');
+                    $('#brage_img_'+_id).val(res.data.src);
+                    layer.closeAll();
+                }
+                ,error: function(){
+                    return layer.msg('上传失败');
+                }
+            });
+            $('.me-act-remove').on('click',function () {
+                $(this).parent().parent().empty();
+            })
+        });
+
+        $('[name="class_names"]').on('click',function(){
+            openLayer(this,"/admin/message/getDtrees",'班级',0,function (ids,names) {
+                $.ajax({
+                    url: '/admin/common/getTeacher',
+                    type:'post',
+                    data:{class_ids:ids,names:names},
+                    success:function(html){
+                        $('[name="class_names_box"]').html(html);
+                        form.render();
+                    },
+                    error:function () {
+                    }
+                });
+            });
+        });
+
+        $('[name="bases_names"]').on('click',function(){
+            openLayer(this,"/admin/common/getBasesDtrees",'基地',1,function (ids,names) {
+                $.ajax({
+                    url: '/admin/common/getTeacher',
+                    type:'post',
+                    data:{base_ids:ids,names:names},
+                    success:function(html){
+                        $('[name="bases_names_box"]').html(html);
+                        form.render();
+                    },
+                    error:function () {
+                    }
+                });
+            });
+        });
+
+        $('[name="area_names"]').on('click',function(){
+            var schoolBox =$('#school_id');
+            openLayer(this,"/admin/common/getAreaDtrees",'区县',0,function () {
+                schoolBox.html('');
+                $.ajax({
+                    url: '/admin/common/getSchools',
+                    type:'post',
+                    data:{'area_ids':$('[name=area_ids]').val()},
+                    success:function(res){
+                        if(res.length > 0){
+                            var keys = [];
+                            //通过循环遍历将数据赋值到temp这个二维数组中
+                            for (var i = 0; i < res.length; i++) {
+                                var child = res[i].child;
+                                var children = [];
+                                for (var j = 0; j < child.length; j++){
+                                    children.push({
+                                        name:child[j].school_name,
+                                        value:child[j].area_id +  '-' + child[j].id
+                                    });
+                                }
+                                var temp = {
+                                    "name": res[i].name,
+                                    "children": children
+                                };
+                                keys.push(temp)
+                            }
+                            xmSelect.render({
+                                el: '#school_id',
+                                name:'school_id',
+                                toolbar:{
+                                    show: true,
+                                },
+                                paging:true,
+                                pageSize: 5,
+                                filterable: true,
+                                height: '500px',
+                                data: keys
+                            })
+                        }else{
+                            schoolBox.html('<select name="school_id"><option value=""></option></select>')
+                        }
+                    },
+                    error:function () {
+                        schoolBox.html('<select name="school_id"><option value=""></option></select>')
+                    }
+                });
+            });
+        });
+        function loadGrade() {
+            var gradeBox =$('#grade_id');
+            $.ajax({
+                url: '/admin/common/getGrades',
+                type:'post',
+                success:function(res){
+                    if(res.length > 0){
+                        var keys = [];
+                        //通过循环遍历将数据赋值到temp这个二维数组中
+                        for (var i = 0; i < res.length; i++) {
+                            var temp = {
+                                "name": res[i].name,
+                                "value": res[i].id
+                            };
+                            keys.push(temp)
+                        }
+                        xmSelect.render({
+                            el: '#grade_id',
+                            name:'grade_id',
+                            paging:true,
+                            pageSize: 5,
+                            direction: 'down',
+                            toolbar:{
+                                show: true,
+                            },
+                            height: '300px',
+                            data: keys
+                        })
+                    }else{
+                        gradeBox.html('<select name="grade_id"><option value=""></option></select>')
+                    }
+                },
+                error:function () {
+                    gradeBox.html('<select name="grade_id"><option value=""></option></select>')
+                }
+            });
+        }
+
+        // 加载管理员教师
+        function loadPwTeacher(){
+            var teacherBox =$('#teacher_id');
+            $.ajax({
+                url: '/admin/common/getTeacherOfAdmin',
+                type:'post',
+                success:function(res){
+                    if(res.length > 0){
+                        var keys = [];
+                        //通过循环遍历将数据赋值到temp这个二维数组中
+                        for (var i = 0; i < res.length; i++) {
+                            var temp = {
+                                "name": res[i].name,
+                                "value": res[i].id
+                            };
+                            keys.push(temp)
+                        }
+                        xmSelect.render({
+                            el: '#teacher_id',
+                            name:'teacher_id',
+                            paging:true,
+                            pageSize: 5,
+                            direction: 'down',
+                            toolbar:{
+                                show: true,
+                            },
+                            height: '300px',
+                            data: keys
+                        })
+                    }else{
+                        teacherBox.html('<select name="teacher_id"><option value=""></option></select>')
+                    }
+                },
+                error:function () {
+                    teacherBox.html('<select name="teacher_id"><option value=""></option></select>')
+                }
+            });
+        }
+        loadGrade();
+        loadPwTeacher();
+        $('input[name=tasked_name]').bind('click',function () {
+            if($("input[name=avail_days]").val() == ''){
+                layer.msg('请设置有效天数');
+                return false;
+            }
+            layer.open({
+                type:1,
+                title:'任务库选择',
+                content:$('#task_box'),
+                area:['800px','450px'],
+                success:function (layero, index) {
+                    table.render({
+                        elem: '#task_list'
+                        ,id:'task_list'
+                        ,url: '/admin/task/index'
+                        ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+                        ,title: ''
+                        ,method: 'post'
+                        ,cols: [[
+                            {field:'id', title:'ID', fixed: 'left', unresize: true, sort: true}
+                            ,{field:'type', title:'是否记录题', templet: '#type_tpl'}
+                            ,{field:'name', title:'名称'}
+                        ]]
+                        ,page: true
+                        ,limit:100
+                        ,limits:[100,200,300]
+                    });
+                    table.on('row(task_list)', function(obj){
+                        var data = obj.data;
+                        combinTaskedHtml('tasked_list_box',{data});
+                        $('input[name=tasked_id]').val(data.id);
+                        layer.close(index);
+                    });
+                }
+            })
+        })
+        $('input[name=task_name]').bind('click',function () {
+            if($("#test-laydate-start").val() == '' || $("#test-laydate-end").val() == ''){
+                layer.msg('请设置任务执行日期');
+                return false;
+            }
+            layer.open({
+                type:1,
+                title:'任务库选择',
+                content:$('#task_box'),
+                area:['800px','450px'],
+            {if condition="$info.type eq 11"}
+            btn: ['确定', '取消'],
+                {/if}
+            success:function (layero, index) {
+                table.render({
+                    elem: '#task_list'
+                    ,id:'task_list'
+                    ,url: '/admin/task/index'
+                    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+                    ,title: ''
+                    ,method: 'post'
+                    ,cols: [[
+                        {if condition="$info.type eq 11"}
+                        {type: 'checkbox', fixed: 'left'},
+                        {/if}
+                        {field:'id', title:'ID', fixed: 'left', unresize: true, sort: true}
+                        ,{field:'type', title:'是否记录题', templet: '#type_tpl'}
+                        ,{field:'name', title:'名称'}
+                    ]]
+                    ,page: true
+                    ,limit:100
+                    ,limits:[100,200,300]
+                });
+                table.on('row(task_list)', function(obj){
+                    {if condition="$info.type eq 11"}
+                    obj.tr.find('.layui-form-checkbox')[1].click();
+                    {else/}
+                        var data = obj.data;
+                        combinTaskHtml('task_list_box',{data});
+                        $('input[name=task_id]').val(data.id);
+                        layer.close(index);
+                        {/if}
+                        });
+            },
+            {if condition="$info.type eq 11"}
+            yes:function (index, layero) {
+                var checkStatus = table.checkStatus('task_list')
+                    ,data = checkStatus.data;
+                combinTaskHtml('task_list_box',data);
+                layer.close(index);
+            }
+            {/if}
+            })
+        });
+        form.on('submit(layuiadmin-app-form-submit)', function(data){
+            var record_table = $('[name=record_table]');
+            var no_table = $('[name=no_table]');
+            var records = [];
+            var no_records = [];
+            if(record_table){
+                record_table.each(function () {
+                    var id = $(this).attr('data-id');
+                    var type = $(this).attr('data-type');
+                    records.push({task_id:id,done_time:$(this).val(),type:type});
+                });
+                data.field.records = records;
+            }
+            if(no_table){
+                no_table.each(function () {
+                    var id = $(this).attr('data-id');
+                    var type = $(this).attr('data-type');
+                    no_records.push({task_id:id,done_time:0,type:type})
+                });
+                data.field.no_records = no_records;
+            }
+            var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+            $.ajax({
+                url:  "{$info.url|default='/admin/v2.task/add'}",
+                type:'post',
+                data: data.field,
+                dataType:"json",
+                success:function(data){
+                    layer.msg(data.msg);
+                    if(data.code == 1){
+                        setTimeout(function () {
+                            parent.location.reload(); //重载加载页面
+                            parent.layer.close(index); //再执行关闭
+                        },1000);
+                    }
+                },
+                error:function(e){
+                    layer.alert("提交失败！");
+                    return false;
+                }
+            });
+
+        });
+        form.on('submit(table-search)', function(data){
+            var field = data.field;
+            //执行重载
+            table.reload('task_list', {
+                where: field
+            });
+            return false;
+        });
+        //清空搜索条件
+        form.on('submit(table-search-empty)', function(data){
+            $('#search_form')[0].reset();
+            $('#table-search').click();
+            return false;
+        });
+
+        form.on('radio(edit_tasking)',function () {
+            var taskingBox = $('#tasking-box');
+            $(this).val() == 1 ? taskingBox.show() : taskingBox.hide();
+        });
+
+        form.on('radio(show_result)',function () {
+            var resultBox = $('#result-box');
+            $(this).val() == 1 ? resultBox.show() : resultBox.hide();
+        });
+
+        $(".layui-icon-picture-fine").click(function(){
+            var imgSrc = $('.image').val();
+            layer.open({
+                type: 1,
+                shade: false,
+                title: false, //不显示标题
+                content: "<img src="+imgSrc+">" //捕获的元素，注意：最好该指定的元素要存放在body最外层，否则可能被其它的相对元素所影响
+
+            });
+        })
+        $(".layui-icon-close").click(function(){
+            layer.confirm('是否确定要删除缩率图？', {
+                btn: ['确定','取消'] //按钮
+            }, function(){
+                $('.image').val('/static/webchat/logo.png');
+                $("#task_images .layui-upload-img")[0].src = '';
+                $('#task_images').html('<i class="layui-icon"></i><p>点击上传，或将文件拖拽到此处</p>');
+                layer.msg('操作成功', {icon: 1});
+            }, function(){
+
+            });
+        })
+
+    })
+</script>
+</body>
+</html>

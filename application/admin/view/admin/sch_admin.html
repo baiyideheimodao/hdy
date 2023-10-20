@@ -1,0 +1,25 @@
+{extend name="base" /}
+{block name="table_tpl"}
+{/block}
+{block name="table_js"}
+table.render({
+    elem: '#news_type'
+    ,url: '/admin/admin/sch_admin'
+    ,toolbar: '#top_tool_bar'
+    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+    ,title: '管理员列表'
+    ,method: 'post'
+    ,cols: [[
+        // {type: 'checkbox', fixed: 'left'},
+        {field:'id', title:'ID', fixed: 'left', unresize: true, sort: true}
+        ,{field:'area_name', title:'区域'}
+        ,{field:'sch_name', title:'学校'}
+        ,{field:'username', title:'用户名', sort: true}
+        ,{field:'name', title:'名称',}
+        ,{field:'phone', title:'电话', sort: true}
+        ,{field:'email', title:'邮箱'}
+        ,{fixed: 'right', title:'操作',width:200, toolbar: '#right_tool_bar'}
+    ]]
+    ,page: true
+    });
+{/block}

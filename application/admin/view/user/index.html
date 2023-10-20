@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+    <style>
+        .layui-table-cell{
+            height:auto !important;
+            white-space:normal;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                {if isset($pageName) and !empty($pageName)}
+                <div class="layui-card-header layui-elem-quote">当前位置：<span class="line-text">{$pageName}</span></div>
+                {/if}
+                <div class="layui-card-body">
+                    <form class="layui-form layui-center" id="search_form">
+                        <div class="layui-form-item">
+
+                            <div class="layui-inline">
+                                <label class="layui-form-label">区域</label>
+                                <div class="layui-input-block">
+                                    <select name="area_id" class="layui-select" lay-filter="area_id">
+                                        <option value="">请选择区域</option>
+                                        {volist name="area" id="item"}
+                                        <option value="{$item.id}">{$item.name}</option>
+                                        {/volist}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">学校</label>
+                                <div class="layui-input-block">
+                                    <select name="school_id" class="layui-select" lay-filter="school_id">
+                                        <option value=""></option>
+                                        {volist name="school" id="item"}
+                                        <option value="{$item.id}">{$item.name}</option>
+                                        {/volist}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">年级</label>
+                                <div class="layui-input-block">
+                                    <select name="grade_id" class="layui-select" lay-filter="grade_id">
+                                        <option value=""></option>
+                                        {volist name="grade" id="item"}
+                                        <option value="{$item.id}">{$item.name}</option>
+                                        {/volist}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="layui-inline">
+                                <label class="layui-form-label">名称</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="name" placeholder="请输入" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <button class="layui-btn layuiadmin-btn-order" lay-submit lay-filter="table-search" id="table-search">搜索</button>
+                                <button class="layui-btn layui-btn-primary" lay-submit lay-filter="table-search-empty">清除搜索</button>
+                            </div>
+                        </div>
+                    </form>
+                    <table class="layui-hide" id="test-table-toolbar" lay-filter="test-table-toolbar"></table>
+
+                    <script type="text/html" id="test-table-toolbar-toolbarDemo">
+                        <div class="layui-btn-container">
+                            <!--<button class="layui-btn layui-btn-primary layui-btn-sm" lay-event="set_class">分配班组</button>-->
+                            <!--<button class="layui-btn layui-btn-normal layui-btn-sm" lay-event="set_group">分配群组</button>-->
+                        </div>
+                    </script>
+                    <script type="text/html" id="avatar_tpl">
+                        <div class="layui-inline">
+                            <img style="display: inline-block; width: 50%; height: 100%;" src= {{ d.avatar }}>
+                        </div>
+                    </script>
+                    <script type="text/html" id="state_tpl">
+                        <input type="checkbox" name="state" lay-skin="switch" lay-text="显示|隐藏" lay-filter="state_tpl"
+                               value="{{ d.state }}" data-json="{{ encodeURIComponent(JSON.stringify(d)) }}" {{ d.state == 1 ? 'checked' : '' }}>
+                    </script>
+                    <script type="text/html" id="sex_tpl">
+                        {{#  if(d.sex == 0){ }}
+                        未知
+                        {{#  } else if(d.sex == 1){ }}
+                        男
+                        {{#  } else{ }}
+                        女
+                        {{#  } }}
+                    </script>
+                    <script type="text/html" id="news_type_bar">
+                        <!--<a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="set_class">分配班组</a>-->
+                        <!--<a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="set_group">分配群组</a>-->
+                        <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="view_task">项目列表</a>
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="__style__/layui/layui.js"></script>
+<script>
+    layui.config({
+                     base: '__style__/' //静态资源所在路径
+                 }).extend({  index: 'lib/index' //主入口模块
+                           }).use(['index', 'table'], function(){
+        var admin = layui.admin
+                ,table = layui.table
+                ,form = layui.form
+                ,$ = layui.$;
+        table.render({
+                         elem: '#test-table-toolbar'
+                         ,url: '/admin/user/index'
+                         ,toolbar: '#test-table-toolbar-toolbarDemo'
+                         ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+                         ,title: '前端用户列表'
+                         ,method: 'post'
+                         ,cols: [[
+                {type: 'checkbox'},
+                {field: 'id', title: 'ID', unresize: true, sort: true}
+                , {field: 'area_name', title: '区域'}
+                , {field: 'school_name', title: '学校'}
+                , {field: 'grade_name', title: '年级'}
+                , {field: 'class_name', title: '班级'}
+                , {field: 'avatar', title: '头像', width: 100, templet: '#avatar_tpl'}
+                , {field: 'nickname', title: '学员昵称'}
+                , {field: 'name', title: '学员姓名',}
+                , {field: 'sex', title: '性别', templet: '#sex_tpl'}
+                , {field: 'points', title: '积分'}
+                , {field: 'create_time', title: '注册日期'}
+                , {field: 'state', title: '状态', sort: true, templet: '#state_tpl', unresize: true}
+                , {title: '操作', width: 200, toolbar: '#news_type_bar'}
+            ]]
+                         ,page: true
+                     });
+        //监听操作
+        form.on('switch(state_tpl)', function(obj){
+            var json = JSON.parse(decodeURIComponent($(this).data('json')));
+            json = table.clearCacheKey(json);
+            $.ajax({
+                       method:'post',
+                       type:'json',
+                       url:'/admin/user/state',
+                       data:{id:json.id,state:(parseInt(json.state) === 1?0:1)},
+                       success:function (res) {
+                           layer.msg(res.msg);
+                       }
+                   })
+        });
+        function dealChecked(data){
+            var list = [];
+            $.each(data,function (key,value) {
+                list.push(value.id);
+            })
+            return list.join(',');
+        }
+        //头工具栏事件
+        table.on('toolbar(test-table-toolbar)', function(obj){
+            var checkStatus = table.checkStatus(obj.config.id);
+            var ids = dealChecked(checkStatus.data)
+            if(ids.length == 0){
+                layer.msg('请选择至少一个用户进行设置');
+                return false;
+            }
+            switch(obj.event){
+                case 'set_class':
+                    layer.open({
+                                   type: 2
+                                   ,title: '设置班组'
+                                   ,content: '/admin/user/set_class?ids='+ids
+                                   ,area: ['500px', '500px']
+                                   ,maxmin:true
+                                   ,btn: ['确定', '取消']
+                                   ,yes: function(index, layero){
+                                        //点击确认触发 iframe 内容中的按钮提交
+                                        var submit = layero.find('iframe').contents().find("#layuiadmin-app-form-submit");
+                                        submit.click();
+                                    }
+                               });
+                    break;
+                case 'set_group':
+                    layer.open({
+                                   type: 2
+                                   ,title: '设置群组'
+                                   ,content: '/admin/user/set_groups?ids='+ids
+                                   ,area: ['500px', '500px']
+                                   ,maxmin:true
+                                   ,btn: ['确定', '取消']
+                                   ,yes: function(index, layero){
+                                        //点击确认触发 iframe 内容中的按钮提交
+                                        var submit = layero.find('iframe').contents().find("#layuiadmin-app-form-submit");
+                                        submit.click();
+                                    }
+                               });
+                    break;
+            };
+        });
+        //监听行工具事件
+        table.on('tool(test-table-toolbar)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'set_class'){
+                layer.open({
+                               type: 2
+                               ,title: '设置班组'
+                               ,content: '/admin/user/set_class?id='+data.id
+                               ,area: ['500px', '500px']
+                               ,maxmin:true
+                               ,btn: ['确定', '取消']
+                               ,yes: function(index, layero){
+                                    //点击确认触发 iframe 内容中的按钮提交
+                                    var submit = layero.find('iframe').contents().find("#layuiadmin-app-form-submit");
+                                    submit.click();
+                                }
+                           });
+            } else if(obj.event === 'set_group'){
+                layer.open({
+                               type: 2
+                               ,title: '设置群组'
+                               ,content: '/admin/user/set_groups?id='+data.id
+                               ,area: ['500px', '500px']
+                               ,maxmin:true
+                               ,btn: ['确定', '取消']
+                               ,yes: function(index, layero){
+                                    //点击确认触发 iframe 内容中的按钮提交
+                                    var submit = layero.find('iframe').contents().find("#layuiadmin-app-form-submit");
+                                    submit.click();
+                                }
+                           });
+            }else if(obj.event === 'view_task'){
+                var index = layer.open({
+                               type: 2
+                               ,title: '项目列表'
+                               ,content: '/admin/user/type_task_list?id='+data.id
+                               ,area: ['500px', '500px']
+                               ,maxmin:true
+                               ,btn: false
+                           });
+                layer.full(index);
+            }
+        });
+        //顶部检索
+        form.on('submit(table-search)', function(data){
+            var field = data.field;
+            console.log(field);
+            //执行重载
+            table.reload('test-table-toolbar', {
+                where: field
+            });
+            return false;
+        });
+        //清空搜索条件
+        form.on('submit(table-search-empty)', function(data){
+            $('#search_form')[0].reset();
+
+        });
+        var school = {:json_encode($school,JSON_UNESCAPED_UNICODE)};
+        form.on('select(area_id)',function (data) {
+            var html = `<option value=""></option>`;
+            $.each(school,function (key,value) {
+                if(value.areas_id == data.value){
+                    html += `<option value="`+value.id+`">`+value.name+`</option>`;
+                }
+            });
+            $('select[name=school_id]').html(html);
+            form.render('select');
+        });
+
+    });
+</script>
+</body>
+</html>

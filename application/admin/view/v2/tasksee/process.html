@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+    <script src="__JS__/jquery1.42.min.js"></script>
+    <script src="__JS__/echarts.js"></script>
+    <style>
+        #done_main,#once_main {
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">任务完成比例</div>
+                <div class="layui-card-body">
+                    <div id="done_main">
+                        <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">及时完成比例</div>
+                <div class="layui-card-body">
+                    <div id="once_main">
+                        <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="__style__/layui/layui.js"></script>
+<script type="text/javascript">
+    function showBar() {
+        var doneChart = echarts.init(document.getElementById('done_main'));
+        var onceChart = echarts.init(document.getElementById('once_main'));
+        $.post('/admin/v2.tasksee/processView',{id:'{$id}'},function (data) {
+            var doneOption = {
+                title: {
+                    text: data.done.title
+                },
+                tooltip: {},
+                legend: {},
+                xAxis: {
+                    data: data.done.categories
+                },
+                label: {
+                    show: true, //开启显示
+                    position: 'insideTop', //在上方显示
+                    formatter: '{c}%',//显示百分号
+                    textStyle: { //数值样式
+                        color: 'white',//字体颜色
+                        fontSize: 10//字体大小
+                    }
+                },
+                yAxis: {
+                    max: 100
+                },
+                series: [
+                    {
+                        name: '完成比例(%)',
+                        type: 'bar',
+                        data: data.done.values,
+                        showBackground: true,
+                        barGap: '20%',
+                        color: '#009688',
+                        barCategoryGap: '40%',
+                        backgroundStyle: {
+                            color: 'rgba(220, 220, 220, 0.8)'
+                        },
+                        barWidth: '20%'
+                    }
+                ]
+            };
+            var onceOption = {
+                title: {
+                    text: data.once.title
+                },
+                tooltip: {},
+                legend: {},
+                xAxis: {
+                    data: data.once.categories
+                },
+                label: {
+                    show: true, //开启显示
+                    position: 'insideTop', //在上方显示
+                    formatter: '{c}%',//显示百分号
+                    textStyle: { //数值样式
+                        color: 'white',//字体颜色
+                        fontSize: 10//字体大小
+                    }
+                },
+                yAxis: {
+                    max: 100
+                },
+                series: [
+                    {
+                        name: '完成比例(%)',
+                        type: 'bar',
+                        data: data.once.values,
+                        showBackground: true,
+                        color: '#009688',
+                        barGap: '20%',
+                        barCategoryGap: '40%',
+                        backgroundStyle: {
+                            color: 'rgba(220, 220, 220, 0.8)'
+                        },
+                        barWidth: '20%'
+                    }
+                ]
+            };
+            doneChart.setOption(doneOption);
+            onceChart.setOption(onceOption);
+        });
+        window.onresize = function() {
+            doneChart.resize();
+            onceChart.resize();
+        };
+    }
+    showBar();
+</script>
+</body>
+</html>
+
+

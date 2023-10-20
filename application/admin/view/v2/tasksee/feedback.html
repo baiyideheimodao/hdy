@@ -1,0 +1,130 @@
+{extend name="base" /}
+{block name="table_tpl"}
+<script type="text/html" id="quest_type_tpl">
+    {{ d.type==1?'问答题':(d.type==2?'记录题':(d.type==3?'选择题':(d.type==4?'填空题':'判断题'))) }}
+</script>
+{/block}
+{block name="search"}
+<div class="layui-inline">
+    <label class="layui-form-label">学校班级</label>
+    <div class="layui-input-block">
+        <input type="hidden" name="class_ids" class="layui-input" value="">
+        <input name="class_names" value="" data-id="class_ids" data-tpl="checkClasses" data-level="5" type="text" class="layui-input" placeholder="选择学校班级" readonly>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">学生</label>
+    <div class="layui-input-block">
+        <input type="hidden" name="uids" class="layui-input" value="">
+        <input name="user_names" value="" data-id="uids" type="text" class="layui-input" placeholder="选择学生" readonly>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">类型</label>
+    <div class="layui-input-block">
+        <select name="typeStatus" class="layui-select" lay-filter="typeStatus">
+            <option value="">全部</option>
+            <option value="1">主观</option>
+            <option value="2">客观</option>
+        </select>
+    </div>
+</div>
+{/block}
+{block name="table_js"}
+table.render({
+elem: '#news_type'
+,url: '/admin/v2.tasksee/feedback'
+,toolbar: '#top_tool_bar'
+,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+,title: ''
+,method: 'post'
+,cols: [[
+// {type: 'checkbox', fixed: 'left'},
+{field:'id', title:'#', fixed: 'left', unresize: true}
+,{field:'user_name', title:'用户'}
+,{field:'school_name', title:'学校'}
+,{field:'class_name', title:'班级'}
+,{field:'title', title:'项目'}
+,{field:'task_name', title:'任务'}
+,{field:'question_name', title:'题目'}
+,{field:'type', title:'题目类型', templet: '#quest_type_tpl'}
+,{field:'create_time', title:'创建日期', sort: true}
+
+]]
+,page: true
+});
+
+$('[name="class_names"]').on('click',function(){
+var choosesName = $(this).attr('name');
+var choosesId = $(this).attr('data-id');
+var tplId = $(this).attr('data-tpl');
+var level = $(this).attr('data-level');
+var tpl='<div style="width:382px; height:338px;overflow-y: auto;">\
+    <div id="'+tplId+'" style="padding:10px 0;"></div>\
+</div>';
+layer.open({
+type:1,
+title:'请选择学校班级',
+area:['400px','450px'],
+content:tpl,
+success:function(){
+$.ajax({
+url: '/admin/message/getDtrees',
+type:'post',
+success:function(res){
+dtree.render({
+elem: "#"+tplId,
+data: res.trees,
+icon: "2",  //修改二级图标样式
+checkbarType: "no-all", // 默认就是all，其他的值为： no-all  p-casc   self  only
+checkbar: true  //开启复选框
+});
+}
+});
+},
+btn: ['确定'],
+btnAlign:'c',
+yes: function(){
+var ids=[],names=[];
+var check=dtree.getCheckbarNodesParam(tplId);
+if(check.length==0){
+layer.msg('请选择学校班级');
+return;
+}
+var num = 0;
+for(var m=0; m<check.length; m++){
+if(parseInt(check[m].level) > (parseInt(level)-1)){
+ids.push(check[m].nodeId);
+names.push(check[m].context);
+num ++;
+}
+}
+if(num == 0){
+layer.msg('请选择学校班级');
+return;
+}
+$('[name="'+choosesName+'"]').val(names.join(','));
+$('[name="'+choosesId+'"]').val(ids.join(','));
+
+layer.closeAll();
+}
+})
+});
+$("[name='user_names']").on('click',function(){
+var ids=$('[name="uids"]').val(),names=$('[name="user_names"]').val(),idsArray=[],namesArray=[];
+if(ids!=''){
+idsArray=ids.split(',');
+namesArray=names.split(',');
+}
+employeepicker.init({
+department_url: "/admin/message/getDtrees",
+employee_url: "/admin/message/getUsers",
+ids:idsArray,
+names:namesArray,
+callback:function(ids,names){
+$('[name="uids"]').val(ids.join(',')),
+$('[name="user_names"]').val(names.join(','));
+}
+});
+})
+{/block}

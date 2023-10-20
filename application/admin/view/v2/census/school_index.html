@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>课时数 - 柱状图</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+    <script src="__JS__/jquery1.42.min.js"></script>
+    <script src="__JS__/echarts.js"></script>
+    <style>
+        #main {
+            height: 400px;
+        }
+        .main_type{
+            margin: 20px 0 70px 0px;
+        }
+        .main_type .title{
+            font: 25px sans-serif;
+            font-weight: bolder;
+            color: #444444;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .main_type .con{
+            display: flex;
+            justify-content: center;
+        }
+        .main_type .con .item{
+            padding: 5px 10px;
+            border: 1px solid #5FB878;
+            font-size: 14px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .main_type .current{
+            border: 1px solid #5FB878;
+            background: #5FB878;
+            color: #FFFFFF;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">课时数</div>
+                <div class="layui-card-body">
+                    <form class="layui-form layui-center" id="search_form">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label class="layui-form-label">日期范围</label>
+                                <div class="layui-inline">
+                                    <input type="text" name="range_date" value="{$rangeDate}" class="layui-input" id="range_time" placeholder="开始 - 结束">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <label class="layui-form-label">年级</label>
+                                <div class="layui-input-block">
+                                    <select name="grade_id" id="grade_id" >
+                                        <option value="">选择年级</option>
+                                        {volist name="grade" id="item"}
+                                        <option value="{$item.id}"  {if condition="1 == $item.id"}selected{/if}>{$item.name}</option>
+                                        {/volist}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <button class="layui-btn layuiadmin-btn-order" lay-submit lay-filter="table-search" id="table-search">搜索</button>
+                                <button class="layui-btn layui-btn-primary" lay-submit lay-filter="table-search-empty">清除搜索</button>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="main_type">
+                        <div class="title">
+                            统计类型
+                        </div>
+                        <div class="con">
+                            <div class="item current" onclick="tabType(0)">班级课时数</div>
+                            <div class="item" onclick="tabType(1)">老师课时数</div>
+                        </div>
+                    </div>
+                    <div id="main">
+                        <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-card-body" style="background: #FFFFFF">
+        <table id="news_type" lay-filter="news_type"></table>
+    </div>
+</div>
+
+<script src="__style__/layui/layui.js"></script>
+<script src="__STATIC__/js/jquery1.42.min.js"></script>
+<script type="text/javascript">
+    // 切换统计类型
+    var formType = 0;
+    var formTypeName = '课时数';
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('main'));
+    function showBar() {
+        $.get('/admin/v2.census/timeNums?range_date='+$('#range_time').val()+'&&grade_id='+$('#grade_id').val(),function (data) {
+            if(formType==1){
+                formTypeName = '老师';
+                formData = data.teacher_values;
+            }else{
+                formTypeName = '课时数'
+                formData = data.categories;
+            }
+
+            console.log(formData);
+            // data 的结构:
+            // {
+            //     categories: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子"],
+            //     values: [5, 20, 36, 10, 10, 20]
+            // }
+            myChart.setOption({
+              title: {
+                  text: data.title
+              },
+              tooltip: {},
+              legend: {},
+              xAxis: {
+                  data: formData
+              },
+              yAxis: {},
+              series: [
+                  {
+                      name: formTypeName,
+                      type: 'bar',
+                      barGap: '20%',
+                      color: '#009688',
+                      barCategoryGap: '40%',
+                      data: data.values
+                  }
+              ]
+          });
+        });
+    }
+    showBar();
+    window.onresize = function() {
+        myChart.resize();
+    };
+    function tabType(index) {
+        formType = index;
+        $(".main_type .item").removeClass("current");
+        $(".main_type .item:eq("+index+")").addClass("current");
+        showBar();
+    }
+</script>
+<script type="text/html" id="zizeng">
+    {{d.LAY_TABLE_INDEX+1}}
+</script>
+<script type="text/html" id="right_tool_bar">
+    <a class="layui-btn layui-btn-xs layui-btn-normal" title="查看详情" lay-event="right-views"><i class="layui-icon layui-icon layui-icon-edit"></i>查看详情</a>
+</script>
+<script>
+    layui.use(['laydate','table','form'], function(){
+        var laydate = layui.laydate;
+        var table = layui.table;
+        var form = layui.form;
+
+        laydate.render({
+                           elem: '#range_time'
+                           ,type: 'datetime'
+                            ,value:'{$rangeDate}'
+                           ,range: '~'
+                           ,format: 'yyyy-M-d'
+                       });
+        form.on('submit(table-search)', function(data){
+            showBar();
+            var field = data.field;
+            //执行重载
+            table.reload('news_type', {
+                page:{curr:1},
+                where: field
+            });
+            return false;
+        });
+        //清空搜索条件
+        form.on('submit(table-search-empty)', function(data){
+            $('#search_form')[0].reset();
+            $('#table-search').click();
+            return false;
+        });
+
+        table.render({
+            elem: '#news_type'
+            ,url: '/admin/v2.census/timeNums'
+            ,toolbar: '#top_tool_bar'
+            ,title: '课时统计表'
+            ,method: 'post'
+            ,cols: [[
+                {field:'zizeng', width:80, title: '序号',fixed: 'left',templet:'#zizeng'}
+                ,{field:'class_name', title:'班级名称',}
+                ,{field:'teacher_name', title:'老师'}
+                ,{field:'num', title:'数量'}
+                ,{fixed: 'right', title:'详情', toolbar: '#right_tool_bar'}
+            ]]
+            ,page: false
+        });
+
+        //监听行工具事件
+        table.on('tool(news_type)', function(obj){
+            var data = obj.data;
+            switch (obj.event) {
+                case 'right-views':
+                    var edit_index = layer.open({
+                        type: 2
+                        ,title: '详情'
+                        ,content: '/admin/v2.census/get_task_id?teacher_id='+data.teacher_id//'/admin/v2.census/user_task_info?id='+data.id
+                        ,area: ['90%', '80%']
+                        ,anim:5
+                        ,btn: ['确定', '取消']
+                        ,maxmin:true
+                        ,yes: function(index, layero){
+                            doAction(index, layero);
+                        }
+                    });
+
+                    break;
+                default:
+                    break;
+            }
+        });
+    });
+</script>
+</body>
+</html>
+
+

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>用户组管理</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+    <style type="text/css">
+        .item-hide{ display: none;}
+    </style>
+</head>
+<link rel="stylesheet" href="__style__/ztree/v3/css/metroStyle/metroStyle.css" type="text/css">
+<body>
+<div class="layui-form" action="" lay-filter="component-form-element" style="padding: 20px 30px 20px 0;background-color:#FFF">
+    <input type="hidden" name="id" id="userId" value="{$data.id|default=''}">
+    <div class="layui-row layui-col-space10 layui-form-item">
+        <div class="layui-col-lg6">
+            <label class="layui-form-label">用户组：</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" lay-verify="required" id="name" autocomplete="off" class="layui-input" value="{$data.name|default=''}">
+            </div>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space10 layui-form-item">
+        <div class="layui-col-lg6">
+            <label class="layui-form-label">描述：</label>
+            <div class="layui-input-block">
+                <textarea name="description" id="description" placeholder="请输入描述" class="layui-textarea">{$data.description|default=''}</textarea>
+            </div>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space10 layui-form-item">
+        <div class="layui-col-lg6">
+            <label class="layui-form-label"><span style="color:red;">*</span>授权</label>
+            <div class="layui-input-block">
+                <input type="hidden" name="rules" value="{$data.rules|default=''}" id="rules">
+                <div  class="ztree" id="authRule"></div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space10 layui-form-item">
+        <div class="layui-col-lg6">
+            <label class="layui-form-label"><span style="color:red;">*</span>状态</label>
+            <div class="layui-input-block ">
+                <select name="status" lay-filter="status">
+                    <option value="1" {if isset($data) and $data.status eq 1}selected{/if}>正常</option>
+                    <option value="0" {if isset($data) and $data.status eq 0}selected{/if}>禁用</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item layui-hide">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="component-form-element" id="layuiadmin-app-form-submit">立即提交</button>
+        </div>
+    </div>
+</div>
+<script src="__style__/layui/layui.js"></script>
+<script type="text/javascript" src="__style__/ztree/v3/js/jquery.min.js"></script>
+<script type="text/javascript" src="__style__/ztree/v3/js/jquery.ztree.core-3.5.js"></script>
+<script type="text/javascript" src="__style__/ztree/v3/js/jquery.ztree.excheck-3.5.js"></script>
+<script type="text/javascript" src="__style__/ztree/v3/js/jquery.ztree.exedit-3.5.js"></script>
+<script>
+    var action = '{$action}';
+    layui.config({
+        base: '../../../layuiadmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'form'], function() {
+        var $ = layui.$,
+            admin = layui.admin,
+            element = layui.element,
+            setter = layui.setter,
+            form = layui.form;
+        var user=localStorage.getItem("session");
+        form.render(null, 'component-form-element');
+        element.render('breadcrumb', 'breadcrumb');
+        form.on('radio(type)', function (data) {
+            var type = $(this).attr('data-type');
+            switch (type){
+                case 'one':
+                    $("#one").removeClass("item-hide");
+                    break;
+                case 'two':
+                    $("#one").addClass("item-hide");
+                    break;
+            }
+            form.render();
+        });
+        form.on('submit(component-form-element)', function(data) {
+            //layer.msg(JSON.stringify(data.field));
+            var d=data.field
+            $.ajax({
+                type: 'post',
+                url: '/admin/auth/'+ action,
+                data: d,
+                success: function(res) {
+                    if (res.code == 200) {
+                        layer.msg('提交成功', {
+                            offset: '15px',
+                            icon: 1,
+                            time: 1000
+                        },function(){
+                            parent.location.reload(); // 父页面刷新
+                        });
+                    } else {
+                        if(layer.msg){
+                            layer.msg(res.msg, {
+                                offset: '15px',
+                                icon: 2
+                            });
+                        }else{
+                            parent.location.reload();
+                        }
+                    }
+                }
+            });
+
+
+            return false;
+        });
+        $.fn.zTree.init($("#authRule"), {
+            check: {
+                enable: true,
+                chkboxType: {'Y': 'ps', 'N': 's'},
+            },
+            view: {
+                dblClickExpand: false,
+                showLine: true,
+                showIcon: false,
+                selectedMulti: false
+            },
+            edit: {
+                enable: true,
+                editNameSelectAll: true,
+                showRemoveBtn: false,
+                showRenameBtn: false
+            },
+            data: {
+                simpleData: {
+                    enable: true
+                }
+            },
+            callback: {
+                onCheck: function () {
+                    var zTree = $.fn.zTree.getZTreeObj('authRule');
+                    var rules = [];
+                    $.each(zTree.getCheckedNodes(), function (i, z) {
+                        rules.push(z.id);
+                    });
+                    $('#rules').val(rules.join(','));
+                }
+            }
+        }, {$authRule|raw});
+    });
+</script>
+</body>
+
+</html>

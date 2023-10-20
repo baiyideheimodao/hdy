@@ -1,0 +1,133 @@
+{extend name="base" /}
+{block name="table_tpl"}
+<script type="text/html" id="area_tpl">
+    {{ d.show_all == 1 ? '显示所有' : '部分显示' }}
+</script>
+<script type="text/html" id="is_top_tpl">
+    <input type="checkbox" name="is_top" lay-skin="switch" lay-text="是|否" lay-filter="is_top_tpl"
+           value="{{ d.is_top }}" data-json="{{ encodeURIComponent(JSON.stringify(d)) }}" {{ d.is_top == 1 ? 'checked' : '' }}>
+</script>
+<script type="text/html" id="state_tpl">
+    <input type="checkbox" name="state" lay-skin="switch" lay-text="显示|隐藏" lay-filter="state_tpl"
+           value="{{ d.state }}" data-json="{{ encodeURIComponent(JSON.stringify(d)) }}" {{ d.state == 1 ? 'checked' : '' }}>
+</script>
+<script type="text/html" id="video_tpl">
+    <a class="layui-btn layui-btn-primary layui-btn-xs view-url" lay-event="view" onclick="openVideo('{{ d.video_url }}')"><i class="layui-icon layui-icon-search"></i>查看</a>
+</script>
+{/block}
+{block name="js"}
+<script>
+    function openVideo(url){
+        layer.open({
+                       title:false
+                       ,type: 1
+                       ,shadeClose: true
+                       ,area: admin.screen() < 2 ? ['80%', '300px'] : ['700px', '450px']
+                       ,content: '<div style="padding: 20px;"><video controls="controls" style="width:100%;height:auto" src="'+url+'"></video></div>'
+                   });
+    }
+</script>
+{/block}
+{block name="search"}
+<div class="layui-inline">
+    <label class="layui-form-label">是否置顶</label>
+    <div class="layui-input-block">
+        <select name="is_top" class="layui-select">
+            <option value=""></option>
+            <option value="1">是</option>
+            <option value="0">否</option>
+        </select>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">状态</label>
+    <div class="layui-input-block">
+        <select name="state" class="layui-select">
+            <option value=""></option>
+            <option value="1">显示</option>
+            <option value="0">隐藏</option>
+        </select>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">标题</label>
+    <div class="layui-input-block">
+        <input type="text" name="title" placeholder="请输入" autocomplete="off" class="layui-input">
+    </div>
+</div>
+{/block}
+{block name="table_js"}
+var cols = [
+    [[
+        // {type: 'checkbox', fixed: 'left'},
+        {field:'id', title:'ID', fixed: 'left', unresize: true, sort: true}
+        ,{field:'area', title:'区域', templet: '#area_tpl'}
+        ,{field:'title', title:'标题'}
+        ,{field:'title', title:'视频',templet: '#video_tpl'}
+        ,{field:'desc', title:'描述'}
+        ,{field:'is_top', title:'是否置顶', sort: true, templet: '#is_top_tpl'}
+        ,{field:'state', title:'状态', sort: true, templet: '#state_tpl', unresize: true}
+        ,{fixed: 'right', title:'操作', toolbar: '#right_tool_bar'}
+    ]],
+    [[
+        // {type: 'checkbox', fixed: 'left'},
+        {field:'id', title:'ID', fixed: 'left', unresize: true, sort: true}
+        ,{field:'title', title:'标题'}
+        ,{field:'desc', title:'描述'}
+        ,{field:'is_top', title:'是否置顶', sort: true, templet: '#is_top_tpl'}
+        ,{field:'state', title:'状态', sort: true, templet: '#state_tpl', unresize: true}
+        ,{fixed: 'right', title:'操作', toolbar: '#right_tool_bar'}
+    ]]
+];
+var Bool = parseInt("{:cookie('id')}") === 1?true:false;
+table.render({
+    elem: '#news_type'
+    ,url: '/admin/video/index'
+    ,toolbar: '#top_tool_bar'
+    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+    ,title: ''
+    ,method: 'post'
+    ,cols: Bool?cols[0]:cols[1]
+    ,page: true
+    });
+
+form.on('switch(is_top_tpl)', function(obj){
+var json = JSON.parse(decodeURIComponent($(this).data('json')));
+json = table.clearCacheKey(json);
+$.ajax({
+method:'post',
+type:'json',
+data:{id:json.id,is_top:(parseInt(json.is_top) === 1?0:1)},
+url:'/admin/video/edit',
+success:function (res) {
+layer.msg(res.msg);
+}
+})
+});
+//监听操作
+form.on('switch(state_tpl)', function(obj){
+    var json = JSON.parse(decodeURIComponent($(this).data('json')));
+    json = table.clearCacheKey(json);
+    $.ajax({
+        method:'post',
+        type:'json',
+        url:'/admin/video/edit',
+        data:{id:json.id,state:(parseInt(json.state) === 1?0:1)},
+        success:function (res) {
+            layer.msg(res.msg);
+        }
+    })
+});
+table.on('tool(news_type)',function(obj){
+    if(obj.event == 'view'){
+        var data = obj.data;
+        layer.open({
+            title:false
+            ,type: 1
+            ,shadeClose: true
+            ,area: admin.screen() < 2 ? ['80%', '300px'] : ['700px', '450px']
+            ,content: '<div style="padding: 20px;"><video controls="controls" style="width:100%;height:auto" src="'+data.video_url+'"></video></div>'
+        });
+    }
+})
+{/block}

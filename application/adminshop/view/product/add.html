@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>商品添加</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+    <link rel="stylesheet" href="/kindeditor/themes/default/default.css"/>
+    <link rel="stylesheet" type="text/css" media="all" href="/layuiadmin/static/css/ztreestyle.css"/>
+    <link rel="stylesheet" type="text/css" media="all" href="/layuiadmin/static/css/treeselect.css"/>
+    <style>
+        .treeSelect input {
+            cursor: pointer;
+        }
+
+        .layui-upload-img {
+            width: 90px;
+            height: 90px;
+            margin: 0;
+        }
+
+        .pic-more-upload-list {
+            display: flex;
+        }
+
+        .pic-more {
+            width: 100%;
+            float: left;
+            margin: 10px 0px 0px 0px;
+        }
+
+        .pic-more li {
+            width: 90px;
+            float: left;
+            margin-right: 5px;
+        }
+
+        .pic-more li .layui-input {
+            display: initial;
+        }
+
+        .pic-more li a {
+            position: absolute;
+            top: 0;
+            display: block;
+        }
+
+        .pic-more li a i {
+            font-size: 24px;
+            background-color: #008800;
+        }
+
+        #slide-pc-priview .item_img img {
+            width: 90px;
+            height: 90px;
+            -moz-box-shadow: 2px 2px 5px #666666;
+            -webkit-box-shadow: 2px 2px 5px #666666;
+            box-shadow: 2px 2px 5px #666666;
+        }
+
+        #slide-pc-priview li {
+            position: relative;
+            list-style: none;
+            float: left;
+            margin: 5px;
+        }
+
+        #slide-pc-priview li:first-child {
+            margin-left: 0px;
+        }
+
+        #slide-pc-priview li .operate {
+            color: #000;
+            display: none;
+        }
+
+        #slide-pc-priview li .toleft {
+            position: absolute;
+            top: 40px;
+            left: 1px;
+            cursor: pointer;
+        }
+
+        #slide-pc-priview li .toright {
+            position: absolute;
+            top: 40px;
+            right: 1px;
+            cursor: pointer;
+        }
+
+        #slide-pc-priview li .close {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            cursor: pointer;
+        }
+
+        #slide-pc-priview li:hover .operate {
+            display: block;
+        }
+
+        .layui-form-label {
+            width: 130px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="layui-form" lay-filter="news_save" id="news_save" style="padding: 20px 30px 20px 0;background-color:#fff;">
+    <div class="layui-form-item">
+        <label class="layui-form-label">显示所有</label>
+        <div class="layui-input-block">
+            <input type="hidden" name="show_all" value="0">
+            <input type="checkbox" name="show_all" lay-skin="switch" lay-filter="show_all" lay-text="显示|不显示"/>
+        </div>
+    </div>
+    <div class="layui-form-item area_block">
+        <label class="layui-form-label">筛选省份</label>
+        <div class="layui-input-block provinces_id">
+            {volist name="$area.province" id="item"}
+            <input type="checkbox" name="province[]" lay-filter="new_province" lay-skin="primary" title="{$item.name}"
+                   value="{$item.id}">
+            {/volist}
+        </div>
+    </div>
+    <div class="layui-form-item area_block">
+        <label class="layui-form-label">筛选城市</label>
+        <div class="layui-input-block citys_id">
+            {volist name="$area.city" id="item"}
+            <input type="checkbox" name="city[]" lay-filter="new_city" lay-skin="primary" title="{$item.name}"
+                   value="{$item.id}">
+            {/volist}
+        </div>
+    </div>
+    <div class='layui-form-item area_block'>
+        <label class="layui-form-label">县区列表</label>
+        <div class="layui-input-block areas_id">
+            {volist name="$area.area" id="item"}
+            <input type="checkbox" name="area[]" lay-skin="primary" title="{$item.name}" value="{$item.id}">
+            {/volist}
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">产品名称</label>
+        <div class="layui-input-inline">
+            <input type="text" name="title" lay-verify='required' placeholder="请输入产品名称" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">产品分类</label>
+        <div class="layui-input-inline">
+            <div class="treeSelect"></div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">缩率图</label>
+        <div class="layui-input-inline">
+            <div class="imgBtn" style="margin-bottom:5px;">
+                <button class="layui-btn layui-btn-blue" id="btn_upload"><i class="layui-icon">&#xe640;</i>图片上传
+                </button>
+            </div>
+            <div class="imgCon">
+                <input type="text" name="image" id="image" disabled placeholder="请输入缩率图" autocomplete="off"
+                       class="layui-input layui-hide" value="">
+                <img src="" id="test-upload-normal" style="width: 100px;height: 100px;display: none;">
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">图片集</label>
+        <div class="layui-input-inline">
+            <input type="hidden" name="images" value="" id="article_img" class="layui-input">
+            <div class="layui-upload">
+                <div class="imgBtn">
+                    <button class="layui-btn layui-btn-blue" id="btn-img"><i class="layui-icon">&#xe640;</i>图片上传
+                    </button>
+                </div>
+                <div class="pic-more-upload-list" id="slide-pc-priview">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">商品原价</label>
+        <div class="layui-input-inline">
+            <input type="text" name="ysprice" lay-verify='required' placeholder="商品原价" autocomplete="off"
+                   class="layui-input"
+                   value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">商品售价</label>
+        <div class="layui-input-inline">
+            <input type="text" name="price" lay-verify='required' placeholder="溢价前的售价" autocomplete="off"
+                   class="layui-input"
+                   value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">库存</label>
+        <div class="layui-input-inline">
+            <input type="number" name="kucun" lay-verify='required' placeholder="库存" autocomplete="off"
+                   class="layui-input"
+                   value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">商品规格</label>
+        <div class="layui-input-inline">
+            <input type="text" name="Specifications" lay-verify='required' placeholder="商品规格" autocomplete="off"
+                   class="layui-input"
+                   value="">
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">是否下架</label>
+        <div class="layui-input-inline">
+            <input type="radio" class="layui-input" name="status" value="0"
+                   title="下架">
+            <input type="radio" class="layui-input" name="status" checked value="1"
+                   title="上架">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">是否设置推荐</label>
+        <div class="layui-input-inline">
+            <input type="radio" class="layui-input" name="recommend" checked value="0"
+                   title="普通">
+            <input type="radio" class="layui-input" name="recommend" value="1"
+                   title="推荐">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">排序</label>
+        <div class="layui-input-inline">
+            <input type="number" name="sort" placeholder="请输入排序" autocomplete="off" class="layui-input"
+                   value="255">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">内容</label>
+        <div class="layui-input-inline" style="width: calc(100% - 200px);">
+            <script type="text/plain" id="myEditor" name="myEditor" style="width:100%;height:240px;"></script>
+        </div>
+    </div>
+    <div class="layui-form-item" style="margin-bottom:50px">
+        <button class="layui-btn" lay-filter="add-submit" lay-submit
+                style="margin: 20px 0 40px 80px;">确认添加
+        </button>
+    </div>
+</div>
+<script src="/layuiadmin/layui/layui.js"></script>
+<script src="/layuiadmin/static/js/jquery.min.js"></script>
+<script src="/layuiadmin/static/js/jquery.ztree.all.min.js"></script>
+<!--treeSelect-->
+<script src="/layuiadmin/static/js/treeselect1.js"></script>
+<script>
+    $(function () {
+        $.ajax({
+            url: '{:url('menuSortdata')}',
+            type: 'post',
+            data: {},
+            dataType: "json",
+            success: function (data) {
+                $(".treeSelect").treeSelect({
+                    data: data.data,
+                    inputId: "sortname",
+                    keyname: "请选择商品分类"
+                })
+            },
+            error: function (e) {
+                layer.alert("提交失败！");
+                return false;
+            }
+        });
+    });
+</script>
+<script type="text/javascript" charset="utf-8" src="/layuiadmin/ueditor/ueditor.config.js?v=v3.0.2"></script>
+<script type="text/javascript" charset="utf-8" src="/layuiadmin/ueditor/ueditor.all.min.js?v=v2.0.1"></script>
+<script type="text/javascript" charset="utf-8" src="/layuiadmin/ueditor/lang/zh-cn/zh-cn.js?v=1.3.5"></script>
+<script>
+    //初始化编辑器
+    var ue = UE.getEditor('myEditor', {
+        maximumWords: 10000
+    });
+
+    function getContent() {
+        return ue.getContent();
+    }
+</script>
+<script type="text/javascript">
+    <!-- 解决源码模式无法保存 -->
+    function editor_init() {
+        $('#edit').submit(function () {
+            editor = UE.getEditor('myEditor');
+            if (editor.queryCommandState('source') == 1) editor.execCommand('source');
+        })
+    }
+</script>
+<script type="text/javascript">editor_init();</script>
+<script src="__style__/layui/layui.js"></script>
+<script>
+    layui.config({
+        base: '/layuiadmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'form', 'upload', 'laydate'], function () {
+        var $ = layui.$
+
+            , upload = layui.upload
+            , laydate = layui.laydate
+            , form = layui.form;
+
+        var show_all = "{if condition='isset($info) and $info.show_all eq 1'}1{else/}0{/if}";
+        if (parseInt(show_all) === 1) {
+            $('.area_block').hide();
+        } else {
+            $('.area_block').show();
+        }
+
+        /* 监听指定开关 */
+        form.on('switch(show_all)', function (data) {
+            if (this.checked) {
+                $('.area_block').hide();
+            } else {
+                $('.area_block').show();
+            }
+        });
+
+
+        //监听省下拉框
+        form.on('checkbox(new_province)', function (dataobj) {
+            console.log(dataobj);
+            var provinceDataId = []; // 省id组
+            $('input[name="province[]"]:checked').each(function () {
+                provinceDataId.push($(this).val());//向数组中添加元素
+            });
+            //移除城市和县区所有选项
+            $(".citys_id").empty();
+            $(".areas_id").empty();
+            //异步加载下拉框数据
+            $.post("/admin/common/CityAreaList", {"provinceDataId": provinceDataId}, function (res) {
+                // var res = JSON.parse(res);
+                if (res.code == 100) {
+                    var $html_city = "";
+                    var $html_area = "";
+                    $.each(res.data.city_data_id, function (index, value) {
+                        $html_city += `<input type="checkbox" name="city[]" checked lay-filter="new_city" lay-skin="primary" title="` + value.name + `" value=` + value.id + `>`;
+                    });
+                    $.each(res.data.area_data_id, function (index, value) {
+                        $html_area += `<input type="checkbox" name="area[]" checked lay-skin="primary" title="` + value.name + `" value=` + value.id + `>`;
+                    });
+                    $('.citys_id').html($html_city);
+                    $('.areas_id').html($html_area);
+                    //append后必须从新渲染
+                    form.render('checkbox');
+                } else {
+                    layer.msg(res.msg)
+                }
+            }, 'json');
+        });
+        //监听市下拉框
+        form.on("checkbox(new_city)", function () {
+            var cityDataId = []; // 省id组
+            $('input[name="city[]"]:checked').each(function () {
+                cityDataId.push($(this).val());//向数组中添加元素
+            });
+            //移除县区所有选项
+            $(".areas_id").empty();
+            //异步加载下拉框数据
+            $.post("/admin/common/CityAreaList", {"cityDataId": cityDataId}, function (res) {
+                // var res = JSON.parse(res);
+                console.log(res);
+                if (res.code == 100) {
+                    var $html_area = "";
+                    $.each(res.data.area_data_id, function (index, value) {
+                        $html_area += `<input type="checkbox" name="area[]" checked lay-skin="primary" title="` + value.name + `" value=` + value.id + `>`;
+                    });
+                    $('.areas_id').html($html_area);
+                    //append后必须从新渲染
+                    form.render('checkbox');
+                } else {
+                    layer.msg(res.msg)
+                }
+            }, 'json');
+
+        });
+
+
+
+
+
+        //普通图片上传
+        var uploadInst = upload.render({
+            elem: '#btn_upload'
+            , url: '{:url("adminshop/Common/upload")}'
+            , done: function (res) {
+                $('#test-upload-normal').show();
+                $('#test-upload-normal').attr('src', res.filename);
+                $('#image').val(res.filename);
+            }
+            , error: function (res) {
+                console.log(res);
+                //请求异常回调
+            }
+        });
+
+        //多图上传
+        var num = 0; //便于接收返回值
+        var img = []; //便于存储返回值
+        upload.render({
+            elem: '#btn-img',
+            url: "/adminshop/Common/dtupload",
+            size: 500,
+            exts: 'jpg|png|jpeg',
+            multiple: true,
+            before: function (obj) {
+                layer.msg('图片上传中...', {
+                    icon: 16,
+                    shade: 0.01,
+                    time: 0
+                })
+            },
+            done: function (res) {
+                layer.close(layer.msg());//关闭上传提示窗口
+                if (res.status == 0) {
+                    return layer.msg(res.message);
+                }
+                //$('#slide-pc-priview').append('<input type="hidden" name="pc_src[]" value="' + res.filepath + '" />');
+                $('#slide-pc-priview').append('<li class="item_img"><div class="operate"><i  class="close layui-icon"><img style="height: 32px;width: 32px;" src="/layuiadmin/static/images/del.png"></i></div><img src="' + res.filepath + '" class="img" ><input type="hidden" name="pc_src[]" value="' + res.filepath + '" /></li>');
+            }
+        });
+        //点击多图上传的X,删除当前的图片
+        $("body").on("click", ".close", function () {
+            $(this).closest("li").remove();
+        });
+        //多图上传点击<>左右移动图片
+        $("body").on("click", ".pic-more ul li .toleft", function () {
+            var li_index = $(this).closest("li").index();
+            if (li_index >= 1) {
+                $(this).closest("li").insertBefore($(this).closest("ul").find("li").eq(Number(li_index) - 1));
+            }
+        });
+        $("body").on("click", ".pic-more ul li .toright", function () {
+            var li_index = $(this).closest("li").index();
+            $(this).closest("li").insertAfter($(this).closest("ul").find("li").eq(Number(li_index) + 1));
+        });
+
+        //监听提交
+        form.on('submit(add-submit)', function (data) {
+            var field = data.field; //获取提交的字段
+            field['content'] = getContent();
+
+            var imgs = "";
+            $(".item_img").each(function () {
+                var imgsrc = $(this).find('input').val();  //10133
+                imgs += imgsrc + ",";
+            })
+            imgs = imgs.substring(0, imgs.length - 1);
+            if(field.show_all==0 && field.area==undefined){
+                layer.msg("请选择商品投放县区！");
+                return false;
+            }
+            field.images = imgs;
+            if (field.typeid == "") {
+                layer.msg("请选择产品分类！");
+                return false;
+            }
+            if (field.image == "") {
+                layer.msg("请上传商品缩率图！");
+                return false;
+            }
+            if (field.images == "") {
+                layer.msg("请上传商品图片集！");
+                return false;
+            }
+            if (field.content == "") {
+                layer.msg("请输入商品内容！");
+                return false;
+            }
+            //提交 Ajax 成功后，关闭当前弹层并重载表格
+            $.ajax({
+                url: "/adminshop/product/add1/action/save",
+                type: 'get',
+                data: field,
+                dataType: "json",
+                success: function (data) {
+                    if (data == 1) {
+                        layer.alert("添加成功", function () {
+                            window.location.reload(); //重载加载页面
+                        });
+                    } else {
+                        layer.alert("修改失败！");
+                        return false;
+                    }
+                },
+                error: function (e) {
+                    layer.alert("提交失败！");
+                    return false;
+                }
+            });
+        });
+    })
+</script>
+</body>
+</html>

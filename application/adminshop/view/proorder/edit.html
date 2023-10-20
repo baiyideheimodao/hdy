@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{$location.title}</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="/layuiadmin/layui/css/layui.css" media="all">
+    <style>
+        .layui-form-item .layui-input-inline {
+            width: calc(100% - 120px);
+        }
+    </style>
+</head>
+<body>
+
+<div class="layui-form" lay-filter="layuiadmin-app-form-list" id="layuiadmin-app-form-list"
+     style="padding: 20px 30px 0 0;">
+    <input value="{$data.id}" name="id" type="hidden">
+    <div class="layui-form-item">
+        <label class="layui-form-label">会员姓名</label>
+        <div class="layui-input-inline">
+            <input type="text" readonly placeholder="请输入产品名称" autocomplete="off" class="layui-input"
+                   value="{$data.userid|user_xm}">
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">总价</label>
+        <div class="layui-input-inline">
+            <input type="text" name="total" placeholder="请输入售价" autocomplete="off" class="layui-input"
+                   value="{$data.total}">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">创建时间</label>
+        <div class="layui-input-inline">
+            <input type="text" name="creatime" placeholder="请输入售价" autocomplete="off" class="creatime layui-input"
+                   value="{$data.creatime|date='Y-m-d H:i:s'}">
+        </div>
+    </div>
+    {if $data.updatetime}
+    <div class="layui-form-item" >
+        <label class="layui-form-label">更新时间</label>
+        <div class="layui-input-inline">
+            <input type="text" name="updatetime" placeholder="请输入售价" autocomplete="off" class="updatetime layui-input"
+                   value="{$data.updatetime|date='Y-m-d H:i:s'}">
+        </div>
+    </div>
+    {/if}
+    <div class="layui-form-item">
+        <label class="layui-form-label">订单状态</label>
+        <div class="layui-input-inline">
+            <input type="radio" class="layui-input" name="state" {if $data.state==1} checked{/if} value="1" title="待付款">
+            <input type="radio" class="layui-input" name="state" {if $data.state==2} checked{/if} value="2" title="已付款">
+            <input type="radio" class="layui-input" name="state" {if $data.state==3} checked{/if} value="3" title="待收货">
+            <input type="radio" class="layui-input" name="state" {if $data.state==4} checked{/if} value="4" title="已完成">
+            <input type="radio" class="layui-input" name="state" {if $data.state==5} checked{/if} value="5" title="待售后">
+        </div>
+    </div>
+    <div class="layui-form-item layui">
+        <label class="layui-form-label">发货订单号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="kuaidi" placeholder="请输入发货订单号" autocomplete="off" class="layui-input"
+                   value="{$data.kuaidi}">
+        </div>
+    </div>
+
+    <div class="layui-form-item layui-hide">
+        <input type="button" lay-submit lay-filter="layuiadmin-app-form-submit" id="layuiadmin-app-form-submit"
+               value="确认添加">
+        <input type="button" lay-submit lay-filter="layuiadmin-app-form-edit" id="layuiadmin-app-form-edit"
+               value="确认编辑">
+    </div>
+</div>
+
+
+<script src="/layuiadmin/layui/layui.js"></script>
+<script src="/layuiadmin/static/js/jquery.min.js"></script>
+
+<script>
+    layui.config({
+        base: '/layuiadmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'form', 'upload', 'laydate'], function () {
+        var $ = layui.$
+            , upload = layui.upload
+            , laydate = layui.laydate
+            , form = layui.form;
+        //日期时间选择器
+        laydate.render({
+            elem: '.creatime'
+            , type: 'datetime'
+        });
+
+        //日期时间选择器
+        laydate.render({
+            elem: '#test1'
+            , type: 'datetime'
+        });
+
+        laydate.render({
+            elem: '.updatetime'
+            , type: 'datetime'
+        });
+
+
+        //监听提交
+        form.on('submit(layuiadmin-app-form-submit)', function (data) {
+            var field = data.field; //获取提交的字段
+            var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+
+            //提交 Ajax 成功后，关闭当前弹层并重载表格
+            $.ajax({
+                url: "/adminshop/proorder/edit/action/edit",
+                type: 'POST',
+                data: field,
+                dataType: "json",
+                success: function (data) {
+                    if (data == 1) {
+                        layer.alert("修改成功", function () {
+                            parent.location.reload(); //重载加载页面
+                            parent.layer.close(index); //再执行关闭
+                        });
+                    } else {
+                        layer.alert("修改失败！");
+                        return false;
+                    }
+                },
+                error: function (e) {
+                    layer.alert("提交失败！");
+                    return false;
+                }
+            });
+
+        });
+    })
+    $(".img_responsive").click(function () {
+        var _this = $(this);
+        imgShow("#outerdiv", "#innerdiv", "#bigimg", _this);
+    });
+</script>
+</body>
+</html>

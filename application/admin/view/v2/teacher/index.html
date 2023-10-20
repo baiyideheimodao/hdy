@@ -1,0 +1,71 @@
+{extend name="base" /}
+{block name="table_tpl"}
+<script type="text/html" id="school_base_tpl">
+    {{#  if(d.type == 1){ }}
+    {{ d.school_name }}
+    {{#  } else { }}
+    {{ d.base_name }}
+    {{#  } }}
+</script>
+<script type="text/html" id="state_tpl">
+    <input type="checkbox" name="status" lay-skin="switch" lay-text="正常|禁用" lay-filter="state_tpl"
+           value="{{ d.status }}" data-json="{{ encodeURIComponent(JSON.stringify(d)) }}" {{ d.status == 1 ? 'checked' : '' }}>
+</script>
+<script type="text/html" id="is_head_tpl">
+    <input type="checkbox" name="is_head" lay-skin="switch" lay-text="是|不是" lay-filter="is_head_tpl"
+           value="{{ d.is_head }}" data-json="{{ encodeURIComponent(JSON.stringify(d)) }}" {{ d.is_head == 1 ? 'checked' : '' }}>
+</script>
+{/block}
+{block name="search"}
+{/block}
+{block name="js"}
+{/block}
+{block name="table_js"}
+table.render({
+    elem: '#news_type'
+    ,url: '/admin/v2.teacher/index'
+    ,toolbar: '#top_tool_bar'
+    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+    ,title: ''
+    ,method: 'post'
+    ,cols: [[
+        // {type: 'checkbox', fixed: 'left'},
+        {field:'id', title:'ID', fixed: 'left', unresize: true, sort: true}
+        ,{field:'username', title:'姓名'}
+        ,{field:'type_name', title:'类型'}
+        ,{field:'type', title:'学校|基地', templet: '#school_base_tpl'}
+        ,{field:'cla_name', title:'班级'}
+        ,{field:'is_head', title:'是否班主任', sort: true, templet: '#is_head_tpl', unresize: true}
+        ,{field:'status', title:'状态', sort: true, templet: '#state_tpl', unresize: true}
+        ,{fixed: 'right', title:'操作', toolbar: '#right_tool_bar', width:150}
+    ]]
+    ,page: true
+});
+//监听操作
+form.on('switch(state_tpl)', function(obj){
+    var json = JSON.parse(decodeURIComponent($(this).data('json')));
+    json = table.clearCacheKey(json);
+    $.ajax({
+        method:'post',
+        type:'json',
+        url:'/admin/v2.teacher/state',
+        data:{id:json.id,status:(parseInt(json.status) === 1?0:1)},
+        success:function (res) {
+            layer.msg(res.msg);
+        }
+    })
+});
+form.on('switch(is_head_tpl)', function(obj){
+var json = JSON.parse(decodeURIComponent($(this).data('json')));
+json = table.clearCacheKey(json);
+$.ajax({
+method:'post',
+type:'json',
+url:'/admin/v2.teacher/is_head',
+data:{id:json.id,is_head:(parseInt(json.is_head) === 1?0:1)},
+success:function (res) {
+layer.msg(res.msg);
+}
+})
+});
+{/block}

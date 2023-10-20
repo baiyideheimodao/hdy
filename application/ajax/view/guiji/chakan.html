@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en" >
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css"/>
+    <style type="text/css">
+        #container,html,body{
+            height: 100%;
+        }
+        .color{
+            width:5rem;
+            height:0.6rem;
+            display:inline-block;
+            margin:0 1rem;
+        }
+        .info{
+            min-width:10rem;
+        }
+    </style>
+    <title>查看轨迹</title>
+</head>
+<body>
+<div id="container" tabindex="0"></div>
+
+<script language="javascript" src="https://webapi.amap.com/maps?v=1.4.15&key={:xtsz(23)}&plugin=AMap.GraspRoad"></script>
+<script type="text/javascript">
+    var map = new AMap.Map('container', {
+        resizeEnable: true,
+        center:[{$data[0]['lat']},{$data[0]['lng']}],
+        zoom:14
+    });
+
+    var graspRoad;
+    var pathParam = [
+        {foreach $data as $v}
+        {"x":{$v['lat']},"y":{$v['lng']},"sp":10,"ag":0, "tm":1478031031},
+        {/foreach}
+       ]
+
+    var path1 = [];
+    for(var i=0;i<pathParam.length;i+=1){
+        path1.push([pathParam[i].x,pathParam[i].y])
+    }
+    var oldLine = new AMap.Polyline({
+        path:path1,
+        strokeWeight:8,
+        strokeOpacity:1,
+        strokeColor:'red'
+    })
+    map.add(oldLine)
+    if(!graspRoad) {
+        graspRoad = new AMap.GraspRoad()
+    }
+
+    graspRoad.driving(pathParam,function(error,result){
+        if(!error){
+            var path2 = [];
+            var newPath = result.data.points;
+            for(var i =0;i<newPath.length;i+=1){
+                path2.push([newPath[i].x,newPath[i].y])
+            }
+            var newLine = new AMap.Polyline({
+                path:path2,
+                strokeWeight:8,
+                strokeOpacity:0.8,
+                strokeColor:'#0091ea',
+                showDir:true
+            })
+            map.add(newLine)
+            map.setFitView()
+        }
+    })
+</script>
+</body>
+</html>

@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+    <link rel="stylesheet" href="__style__/dtree/dtree.css?t=142568957" media="all">
+    <link rel="stylesheet" href="__style__/dtree/font/dtreefont.css?t=142568957" media="all">
+    <link rel="stylesheet" href="/kindeditor/themes/default/default.css" />
+    <script src="/kindeditor/kindeditor-all.js"></script>
+    <script src="/kindeditor/lang/zh-CN.js"></script>
+    <script>
+        var editor;
+        KindEditor.ready(function(K) {
+            editor = K.create('#content', {
+                filterMode: false,//不开启html过滤模式，则读取值可以直接在textarea中显示
+                pasteType: 1,
+                afterBlur: function () {
+                    this.sync();
+                }//同步回去后当做是input进行ajax提交即可
+            });
+        });
+    </script>
+    <style>
+        .layui-upload-img{width: 50%; height: auto;}
+        .addExt{
+            border:1px solid #009688;
+            background-color:#fff;
+            color:#009688;
+            display:block;
+            padding:5px 15px;
+            border-radius:5px;
+            text-align:center;
+            cursor:pointer;
+        }
+        .addExt:hover{
+            background-color:#009688;
+            color:#fff;
+        }
+        .ext-box{
+            border: 1px dashed gray;
+        }
+        .me-data-row{
+            position:relative;
+        }
+        .me-data-del{
+            position: absolute;
+            right: 0px;
+            top: -10px;
+            border: 1px solid #999;
+            border-radius: 20px;
+            padding: 1px;
+            cursor: pointer;
+            background-color: #999;
+            color: #fff;
+            opacity: .8;
+        }
+    </style>
+</head>
+<body>
+<!--<div style="display:none;position:absolute;z-index:999;width:100px;height:50px;" id="data_x"><img src="/static/admin/images/data_x.png"></div>-->
+<!--<div style="display:none;position:absolute;z-index:999;width:100px;height:50px;" id="data_y"><img src="/static/admin/images/data_y.png"></div>-->
+<div class="layui-form" lay-filter="layuiadmin-form-tags" id="layuiadmin-app-form-tags" style="padding: 20px 30px 20px 0;background-color:#fff">
+    <input name="id" type="hidden" value="">
+    <div class="layui-form-item">
+        <label class="layui-form-label">类型</label>
+        <div class="layui-input-block">
+            <select name="type" lay-filter="type">
+                {volist name=":config('rx.question_types')" id="item"}
+                <option value="{$item.index}">{$item.name}</option>
+                {/volist}
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">任务群</label>
+        <div class="layui-input-block">
+            <input type="text" name="sub_name" value="{$info.sub_name|default=''}" lay-verify="required" lay-reqText="请选择任务群" placeholder="请选择任务群" readonly class="layui-input">
+            <input type="hidden" name="sub_course_index_id" value="{$info.sub_course_index_id|default=0}">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">科目</label>
+        <div class="layui-input-block">
+            <select name="subject_id" lay-filter="subject_id">
+            <!--<select name="subject_id" lay-filter="subject_id" lay-verify="required">-->
+                <option value="">选择科目</option>
+                {volist name="subject" id="item"}
+                <option value="{$item.id}">{$item.name}</option>
+                {/volist}
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item type-hide-2">
+        <label class="layui-form-label">版本</label>
+        <div class="layui-input-block">
+            <select name="version_id" lay-filter="version_id">
+            <!--<select name="version_id" lay-filter="version_id" lay-verify="required">-->
+                <option value=""></option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item type-hide-2">
+        <label class="layui-form-label">项目</label>
+        <div class="layui-input-block">
+            <select name="maker_id" lay-filter="maker_id">
+            <!--<select name="maker_id" lay-filter="maker_id" lay-verify="required">-->
+                <option value=""></option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">任务名称</label>
+        <div class="layui-input-block">
+            <input type="text" lay-verify="required" name="data_log_name" id="data_log_name" class="layui-input" style="position:absolute;z-index:101;width:94%" onkeyup="dataLog()" value="" placeholder="请选择或输入任务名称" autocomplete="off">
+            <select type="text" name="data_log_id" id="data_log_id" placeholder="请选择或输入任务名称" lay-filter="data_log_id" class="layui-select" autocomplete="off" lay-search="">
+                <option value="">请选择或输入名称</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item qusetion2_hide">
+        <label class="layui-form-label">显示所有</label>
+        <div class="layui-input-block">
+            <input type="checkbox" name="" lay-skin="switch" lay-filter="show_all" lay-text="显示|不显示" {if condition="isset($info) and $info.show_all eq 1"}checked{/if}/>
+        </div>
+    </div>
+    <div class="layui-form-item layui-hide area_block">
+        <div class="layui-inline">
+            <label class="layui-form-label">页数</label>
+            <div class="layui-input-inline" style="width: 100px;">
+                <input type="text" name="pages[]" placeholder="开始页" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-form-mid">-</div>
+            <div class="layui-input-inline" style="width: 100px;">
+                <input type="text" name="pages[]" placeholder="结束页" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+    </div>
+    <div class="area_block">
+        <div class="layui-form-item type-hide-2 ">
+            <div class="layui-inline">
+                <label class="layui-form-label">页码</label>
+                <div class="layui-input-inline">
+                    <input type="number" name="page_num" placeholder="" autocomplete="off" class="layui-input">
+                </div>
+                <div class="layui-form-mid layui-hide">页   第</div>
+                <div class="layui-input-inline layui-hide" style="width: 100px;">
+                    <input type="number" name="question_num" placeholder="" autocomplete="off" class="layui-input">
+                </div>
+                <div class="layui-form-mid layui-hide">题</div>
+            </div>
+        </div>
+        <div class="layui-form-item type-hide-2">
+            <label class="layui-form-label">级别</label>
+            <div class="layui-input-block">
+                <select name="level" lay-filter="level">
+                    <option value="">请选择</option>
+                    <option value="4">无</option>
+                    <option value="1">尖子</option>
+                    <option value="2">培优</option>
+                    <option value="3">基础</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div id="contents">
+        <div class="layui-form-item">
+            <label class="layui-form-label">题目名称</label>
+            <div class="layui-input-block">
+                <input name="name" value="" lay-verify="required" placeholder="题目名称" type="text" class="layui-input" required>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">描述</label>
+            <div class="layui-input-block">
+                <textarea rows="4" name="desc" lay-verify="required" placeholder="试题描述" type="text" class="layui-textarea"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"></label>
+            <div class="layui-input-block">
+                <div class="layui-input-inline">
+                    <input name="images" value="" type="" placeholder="文件类型image/video"  class="layui-input">
+                </div>
+                <div class="layui-input-inline" style="width:calc(100% - 600px)">
+                    <input name="file_type" value="" type="" class="layui-input">
+                </div>
+            </div>
+            <div style="clear: both ;height: 10px"></div>
+            <div class="layui-input-block">
+                <div class="layui-upload">
+                    <div class="layui-upload-drag" id="ques_images">
+                        <i class="layui-icon"></i>
+                        <p>点击上传，或将文件拖拽到此处</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">答案</label>
+            <div class="layui-input-block">
+                <textarea name="answer[text]" class="layui-textarea" placeholder="文字答案" required></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"></label>
+            <div class="layui-input-block">
+                <div class="layui-input-inline">
+                    <input name="answer[file_type]" value="" type="" placeholder="文件类型image/video"  class="layui-input">
+                </div>
+                <div class="layui-input-inline" style="width:calc(100% - 600px)">
+                    <input name="answer[image]" value="" type="" class="layui-input">
+                </div>
+            </div>
+            <div style="clear: both ;height: 10px"></div>
+            <div class="layui-input-block">
+                <div class="layui-upload">
+                    <div class="layui-upload-drag" id="answer_image">
+                        <i class="layui-icon"></i>
+                        <p>点击上传，或将文件拖拽到此处</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item layui-hide">
+        <input type="button" lay-submit lay-filter="layuiadmin-app-form-submit" id="layuiadmin-app-form-submit" value="确定">
+    </div>
+</div>
+
+<script src="__style__/layui/layui.js"></script>
+<script>
+    layui.config({
+        base: '__style__/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'form', 'upload', 'table', 'dtree','laydate'], function () {
+        var $ = layui.$
+            , table = layui.table
+            , upload = layui.upload
+            ,dtree = layui.dtree
+            , form = layui.form;
+        var record = [0];
+        $('[name="sub_name"]').on('click',function(){
+            var tpl='<div style="width:382px; height:338px;overflow-y: auto;">\
+						<div id="sub_list" style="padding:10px 0;"></div>\
+					</div>';
+            layer.open({
+                type:1,
+                title:'选择任务群',
+                area:['400px','450px'],
+                content:tpl,
+                success:function(){
+                    $.ajax({
+                        url: "/admin/common/getSubCourseDtrees",
+                        type:'post',
+                        success:function(res){
+                            dtree.render({
+                                elem: "#sub_list",
+                                data: res.trees,
+                                icon: "2",  //修改二级图标样式
+                                checkbarType: "no-all", // 默认就是all，其他的值为： no-all  p-casc   self  only
+                                checkbar: false  //开启复选框
+                            });
+                        }
+                    });
+                },
+                btn: ['确定'],
+                btnAlign:'c',
+                yes: function(){
+                    var check=dtree.getNowParam("sub_list");
+                    if(parseInt(check.level) == 1){
+                        layer.msg('请选择任务群');
+                        return false;
+                    }
+                    $('[name="sub_name"]').val(check.context);
+                    $('[name="sub_course_index_id"]').val(check.nodeId);
+                    layer.closeAll();
+                }
+            })
+        });
+        /* 监听指定开关 */
+        form.on('switch(show_all)', function(data){
+            if(this.checked){
+                $('.area_block').show();
+            }else{
+                $('.area_block').hide();
+            }
+        });
+        var show_all = 1;
+        if(parseInt(show_all) === 1){
+            $('.area_block').hide();
+        }else{
+            $('.area_block').show();
+        }
+
+        function initUpload(objId,inputObjId,fileTypeObj) {
+            upload.render({
+                elem    : objId
+//                              elem    : '#ques_images'
+                ,accept: 'file' //图片、视频、音频
+                , url   : '/admin/question/upload_pic'
+                , before: function (obj) {
+                    //预读本地文件示例，不支持ie8
+                    obj.preview(function (index, file, result) {
+                        console.log(file);
+                        var file_type = file.type;
+                        var type = file_type.split('/')[0];
+                        if(['image','video','audio'].indexOf(type) === -1){
+                            layer.alert('上传文件格式错误,请重新上传');
+                            return false;
+                        }
+                        if(type === 'image'){
+                            $(objId).html('<img class="layui-upload-img" src="' + result + '">');
+                        }else{
+                            $(objId).html('<video class="layui-upload-img" controls="controls" src="' + result + '">当前浏览器版本过低</video>');
+                        }
+                        $(fileTypeObj).val(type);
+                        this.data = {'file_type':type};
+                    });
+                }
+                , done  : function (res) {
+                    //如果上传失败
+                    if (res.code > 0) {
+                        return layer.msg('上传失败');
+                    }
+                    $(inputObjId).val(res.data.src);
+//                                    $('input[name=images]').val(res.data.src);
+                }
+                , error : function () {
+                    //演示失败状态，并实现重传
+                    $(objId).html('<i class="layui-icon"></i><p>点击上传，或将文件拖拽到此处</p>');
+                }
+            });
+        }
+        function initAsk(type) {
+            var html = `
+            <div class="layui-form-item">
+                <label class="layui-form-label">题目名称</label>
+                <div class="layui-input-block">
+                    <input name="name" value="" placeholder="题目名称" type="text" class="layui-input" required>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">描述</label>
+                <div class="layui-input-block">
+                    <textarea rows="4" name="desc" placeholder="试题描述" type="text" class="layui-textarea"></textarea>
+                </div>
+            </div>
+			<div class="layui-form-item">
+                <div class="layui-input-block">
+                    <div class="layui-input-inline">
+                        <input name="file_type" value="" type="" placeholder="文件类型image/video"  class="layui-input">
+                    </div>
+                    <div class="layui-input-inline" style="width:calc(100% - 600px)">
+                        <input name="images" value="" type="" class="layui-input">
+                    </div>
+                </div>
+                <div style="clear: both ;height: 10px"></div>
+                <div class="layui-input-block">
+                    <div class="layui-upload">
+                        <div class="layui-upload-drag" id="ques_images">
+                            <i class="layui-icon"></i>
+                            <p>点击上传，或将文件拖拽到此处</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">答案</label>
+                <div class="layui-input-block">
+                    <textarea name="answer[text]" class="layui-textarea" placeholder="文字答案" required></textarea>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label"></label>
+                <div class="layui-input-block">
+                    <div class="layui-input-inline">
+                        <input name="answer[file_type]" value="" type="" placeholder="文件类型image/video"  class="layui-input">
+                    </div>
+                    <div class="layui-input-inline" style="width:calc(100% - 600px)">
+                        <input name="answer[image]" value="" type="" class="layui-input">
+                    </div>
+                </div>
+                <div style="clear: both ;height: 10px"></div>
+                <div class="layui-input-block">
+                    <div class="layui-upload">
+                        <div class="layui-upload-drag" id="answer_image">
+                            <i class="layui-icon"></i>
+                            <p>点击上传，或将文件拖拽到此处</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+			`;
+            if(type==2){
+                html += `
+                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                        <legend>答案要求</legend>
+                    </fieldset>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">文字作答</label>
+                        <div class="layui-input-block">
+                            <select name="answer_file_text">
+                                <option value="1">需要</option>
+                                <option value="0" selected>不需要</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">上传图片</label>
+                        <div class="layui-input-block">
+                            <select name="answer_file_image">
+                                <option value="1">需要</option>
+                                <option value="0" selected>不需要</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+            }
+            $('#contents').html(html);
+            initUpload('#ques_images','input[name=images]','input[name=file_type]');
+            initUpload('#answer_image','input[name="answer[image]"]','input[name="answer[file_type]"]');
+            form.render('select');
+        }
+        function initRecord() {
+            var html = `
+                <div class="layui-form-item">
+                    <label class="layui-form-label">题目名称</label>
+                    <div class="layui-input-block">
+                        <input name="name" value="" placeholder="题目名称" type="text" class="layui-input" required>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">描述</label>
+                    <div class="layui-input-block">
+                        <textarea rows="4" name="desc" placeholder="试题描述" type="text" class="layui-textarea"></textarea>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">内容</label>
+                    <div class="layui-input-block">
+                        <textarea name="options" id="content" cols="" rows="" class="textinput" style="width:100%;height:400px;"></textarea>
+                    </div>
+                </div>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                    <legend>答案要求</legend>
+                </fieldset>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">上传图片</label>
+                    <div class="layui-input-block">
+                        <select name="answer_file_image">
+                            <option value="1">需要</option>
+                            <option value="0" selected>不需要</option>
+                        </select>
+                    </div>
+                </div>
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                    <legend>数据要求</legend>
+                </fieldset>
+                <div class="layui-form-item">
+                    <label class="layui-form-label"></label>
+                    <div class="layui-input-block">
+                       <div class="addExt">添加数据</div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label"></label>
+                    <div class="layui-input-block ext-box">
+                    </div>
+                </div>
+`;
+            $(".qusetion2_hide").hide();
+            $('#contents').html(html);
+            form.render();
+            $('.addExt').on('click',function () {
+                var id = Number(Math.random().toString().substr(3,length) + Date.now()).toString(36);
+                $('.ext-box').append(`
+                        <div class="layui-form-item">
+                            <div class="layui-inline me-data-row">
+                              <label class="layui-form-label">数据</label>
+                              <div class="layui-input-inline">
+                                <input type="text" name="ext[`+id+`][name]" lay-verify="required" placeholder="数据名称" autocomplete="off" class="layui-input" >
+                              </div>
+                              <div class="layui-input-inline">
+                                <input type="text" name="ext[`+id+`][unit]" lay-verify="required" placeholder="数据单位" autocomplete="off" class="layui-input" >
+                              </div>
+                              <i class="layui-icon layui-icon-close me-data-del" title="删除"></i>
+                            </div>
+                        </div>
+                `);
+                $('.me-data-del').click(function () {
+                   $(this).parent().parent().remove();
+                });
+            });
+            editor = KindEditor.create('#content', {
+                filterMode: false,//不开启html过滤模式，则读取值可以直接在textarea中显示
+                pasteType: 1,
+                afterBlur: function () {
+                    this.sync();
+                }//同步回去后当做是input进行ajax提交即可
+            });
+        }
+        function initChoose(type) {
+            var html = `
+                <div class="layui-form-item">
+                    <label class="layui-form-label">题目名称</label>
+                    <div class="layui-input-block">
+                        <input name="name" value="" type="text" placeholder="题目名称" class="layui-input" required>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">描述</label>
+                    <div class="layui-input-block">
+                        <textarea rows="4" name="desc" placeholder="试题描述" type="text" class="layui-textarea"></textarea>
+                    </div>
+                </div>
+				<div class="layui-form-item">
+                    <label class="layui-form-label"></label>
+                    <div class="layui-input-block">
+                        <div class="layui-input-inline">
+                            <input name="file_type" value="" type="" placeholder="文件类型image/video"  class="layui-input">
+                        </div>
+                        <div class="layui-input-inline" style="width:calc(100% - 600px)">
+                            <input name="images" value="" type="" class="layui-input">
+                        </div>
+                    </div>
+                    <div style="clear: both ;height: 10px"></div>
+                    <div class="layui-input-block">
+                        <div class="layui-upload">
+                            <div class="layui-upload-drag" id="ques_images">
+                                <i class="layui-icon"></i>
+                                <p>点击上传，或将文件拖拽到此处</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            if(type == 1){
+                html += `
+                <div class="layui-form-item">
+                    <label class="layui-form-label">A.</label>
+                    <div class="layui-input-block">
+                        <div class="layui-input-inline">
+                            <input name="options[A][file_type]" value="" type="" placeholder="文件类型image/video"  class="layui-input">
+                        </div>
+                        <div class="layui-input-inline" style="width:calc(100% - 600px)">
+                            <input name="options[A][image]" value="" type="" class="layui-input">
+                        </div>
+                    </div>
+                    <div style="clear: both ;height: 10px"></div>
+                    <div class="layui-input-block">
+                        <div class="layui-upload">
+                            <div class="layui-upload-drag" id="ques_imagesA">
+                                <i class="layui-icon"></i>
+                                <p>点击上传，或将文件拖拽到此处</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label"></label>
+                    <div class="layui-input-block">
+                        <input name="options[A][text]" value="" placeholder="选项A文字内容" type="text" class="layui-input" required>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">B.</label>
+                    <div class="layui-input-block">
+                        <div class="layui-input-inline">
+                            <input name="options[B][file_type]" value="" type="" placeholder="文件类型image/video"  class="layui-input">
+                        </div>
+                        <div class="layui-input-inline" style="width:calc(100% - 600px)">
+                            <input name="options[B][image]" value="" type="" class="layui-input">
+                        </div>
+                    </div>
+                    <div style="clear: both ;height: 10px"></div>
+                    <div class="layui-input-block">
+                        <div class="layui-upload">
+                            <div class="layui-upload-drag" id="ques_imagesB">
+                                <i class="layui-icon"></i>
+                                <p>点击上传，或将文件拖拽到此处</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label"></label>
+                    <div class="layui-input-block">
+                        <input name="options[B][text]" value="" placeholder="选项B文字内容" type="text" class="layui-input" required>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">C.</label>
+                    <div class="layui-input-block">
+                        <div class="layui-input-inline">
+                            <input name="options[C][file_type]" value="" type="" placeholder="文件类型image/video"  class="layui-input">
+                        </div>
+                        <div class="layui-input-inline" style="width:calc(100% - 600px)">
+                            <input name="options[C][image]" value="" type="" class="layui-input">
+                        </div>
+                    </div>
+                    <div style="clear: both ;height: 10px"></div>
+                    <div class="layui-input-block">
+                        <div class="layui-upload">
+                            <div class="layui-upload-drag" id="ques_imagesC">
+                                <i class="layui-icon"></i>
+                                <p>点击上传，或将文件拖拽到此处</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label"></label>
+                    <div class="layui-input-block">
+                        <input name="options[C][text]" value="" placeholder="选项C文字内容" type="text" class="layui-input" required>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">D.</label>
+                    <div class="layui-input-block">
+                        <div class="layui-input-inline">
+                            <input name="options[D][file_type]" value="" type="" placeholder="文件类型image/video"  class="layui-input">
+                        </div>
+                        <div class="layui-input-inline" style="width:calc(100% - 600px)">
+                            <input name="options[D][image]" value="" type="" class="layui-input">
+                        </div>
+                    </div>
+                    <div style="clear: both ;height: 10px"></div>
+                    <div class="layui-input-block">
+                        <div class="layui-upload">
+                            <div class="layui-upload-drag" id="ques_imagesD">
+                                <i class="layui-icon"></i>
+                                <p>点击上传，或将文件拖拽到此处</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label"></label>
+                    <div class="layui-input-block">
+                        <input name="options[D][text]" value="" placeholder="选项D文字内容" type="text" class="layui-input" required>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">答案</label>
+                    <div class="layui-input-block">
+                        <select name="answer" lay-filter="answer" required>
+                            <option value="">请选择答案</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                        </select>
+                    </div>
+                </div>`;
+
+                $('#contents').html(html);
+                initUpload('#ques_images','input[name=images]','input[name=file_type]');
+                initUpload('#ques_imagesA','input[name="options[A][image]"]','input[name="options[A][file_type]"]');
+                initUpload('#ques_imagesB','input[name="options[B][image]"]','input[name="options[B][file_type]"]');
+                initUpload('#ques_imagesC','input[name="options[C][image]"]','input[name="options[C][file_type]"]');
+                initUpload('#ques_imagesD','input[name="options[D][image]"]','input[name="options[D][file_type]"]');
+            }else{
+                html += `
+                <div class="layui-form-item">
+                    <label class="layui-form-label">A.</label>
+                    <div class="layui-input-block">
+                        <div class="layui-input-inline">
+                            <input name="options[A][file_type]" value="" type="" placeholder="文件类型image/video"  class="layui-input">
+                        </div>
+                        <div class="layui-input-inline" style="width:calc(100% - 600px)">
+                            <input name="options[A][image]" value="" type="" class="layui-input">
+                        </div>
+                    </div>
+                    <div style="clear: both ;height: 10px"></div>
+                    <div class="layui-input-block">
+                        <div class="layui-upload">
+                            <div class="layui-upload-drag" id="ques_imagesA">
+                                <i class="layui-icon"></i>
+                                <p>点击上传，或将文件拖拽到此处</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label"></label>
+                    <div class="layui-input-block">
+                        <input name="options[A][text]" value="" placeholder="选项A文字内容" type="text" class="layui-input" required>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">B.</label>
+                    <div class="layui-input-block">
+                        <div class="layui-input-inline">
+                            <input name="options[B][file_type]" value="" type="" placeholder="文件类型image/video"  class="layui-input">
+                        </div>
+                        <div class="layui-input-inline" style="width:calc(100% - 600px)">
+                            <input name="options[B][image]" value="" type="" class="layui-input">
+                        </div>
+                    </div>
+                    <div style="clear: both ;height: 10px"></div>
+                    <div class="layui-input-block">
+                        <div class="layui-upload">
+                            <div class="layui-upload-drag" id="ques_imagesB">
+                                <i class="layui-icon"></i>
+                                <p>点击上传，或将文件拖拽到此处</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label"></label>
+                    <div class="layui-input-block">
+                        <input name="options[B][text]" value="" placeholder="选项B文字内容" type="text" class="layui-input" required>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">答案</label>
+                    <div class="layui-input-block">
+                        <select name="answer" lay-filter="answer" required>
+                            <option value="">请选择答案</option>
+                            <option value="1">A</option>
+                            <option value="2">B</option>
+                        </select>
+                    </div>
+                </div>`;
+
+                $('#contents').html(html);
+                initUpload('#ques_images','input[name=images]','input[name=file_type]');
+                initUpload('#ques_imagesA','input[name="options[A][image]"]','input[name="options[A][file_type]"]');
+                initUpload('#ques_imagesB','input[name="options[B][image]"]','input[name="options[B][file_type]"]');
+            }
+            form.render('select');
+        }
+        initUpload('#ques_images','input[name=images]','input[name=file_type]');
+        initUpload('#answer_image','input[name="answer[image]"]','input[name="answer[file_type]"]');
+
+        $('.maker-control').hide();
+        var version = {:json_encode($version,JSON_UNESCAPED_UNICODE)};
+        var maker = {:json_encode($maker,JSON_UNESCAPED_UNICODE)};
+        var data_log = {:json_encode($data_log,JSON_UNESCAPED_UNICODE)};
+
+        function initDataLog() {
+            var html = `<option value="">请选择或输入名称</option>`;
+            $.each(data_log,function (key,value) {
+                html += `<option value="`+value.name+`" data-name="`+value.name+`">`+value.name+`</option>`;
+            })
+            $('#data_log_id').html(html);
+            form.render('select');
+        }
+        initDataLog();
+
+        form.on('select(data_log_id)', function (data) {   //选择 赋值给input框
+            $("#data_log_name").val(data.value);
+            $("#data_log_id").next().find("dl").css({ "display": "none" });
+            form.render();
+        });
+
+        window.dataLog = function () {
+            var value = $("#data_log_name").val();
+            $("#data_log_id").val(value);
+            form.render();
+            if (value != '') {
+                $("#data_log_id").next().find("dl").css({ "display": "block" });
+            }
+            var dl = $("#data_log_id").next().find("dl").children();
+            var j = -1;
+            for (var i = 0; i < dl.length; i++) {
+                if (dl[i].innerHTML.indexOf(value) <= -1) {
+                    dl[i].style.display = "none";
+                    j++;
+                }
+                if (j == dl.length-1) {
+                    $("#data_log_id").next().find("dl").css({ "display": "none" });
+                }
+                if (dl[i].innerHTML == (value)) {
+                    $("#data_log_id").next().find('dl').css({"display":"none"});
+                    continue;
+                }
+            }
+
+        }
+        form.on('select(type)', function(data){
+            $('.type-hide-2').show();
+            $('.qusetion2_hide').show();
+            switch(parseInt(data.value)){
+                case 1:
+                    initAsk(1);
+                    break;
+                case 2:
+                    $('.type-hide-2').hide();
+                    initRecord();
+                    break;
+                case 3:
+                    initChoose(1);
+                    break;
+                case 4:
+                    initAsk(2);
+                    break;
+                case 5:
+                    initChoose(2);
+                    break;
+            }
+        });
+        form.on('select(subject_id)', function(data){
+            var html = `<option value=""></option>`;
+            $('select[name=maker_id]').html(html);
+            $('.maker-control').hide();
+            $.each(version,function (key,value) {
+                if(value.subject_id == data.value){
+                    html += `<option value="`+value.id+`">`+value.name+`</option>`;
+                }
+            });
+            $('select[name=version_id]').html(html);
+            form.render('select');
+        });
+        form.on('select(version_id)', function(data){
+            var html = `<option value=""></option>`;
+            $.each(maker,function (key,value) {
+                if(value.version_id == data.value){
+                    html += `<option value="`+value.id+`">`+value.name+`</option>`;
+                }
+            });
+            $('select[name=maker_id]').html(html);
+            form.render('select');
+        });
+        form.on('select(maker_id)', function(data){
+            if(data.value == ''){
+                $('.maker-control').hide();
+            }else{
+                $('.maker-control').show();
+            }
+        });
+        form.verify({
+        });
+        form.on('submit(layuiadmin-app-form-submit)', function(data){
+            var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+            //console.log(data.field);
+            //return;
+            $.ajax({
+                url: "{$info.url|default='/admin/question/add'}",
+                type:'post',
+                data: data.field,
+                dataType:"json",
+                success:function(data){
+                    layer.msg(data.msg);
+                    // $('select[name=subject_id]').val("");
+                    // $('select[name=version_id]').val("");
+                    // $('select[name=maker_id]').val("");
+                    // layui.form.render('select');
+                    return false;
+                    //隐藏刷新页面返回菜单功能
+                    if(data.code == 1){
+                        setTimeout(function () {
+                            parent.location.reload(); //重载加载页面
+                            parent.layer.close(index); //再执行关闭
+                        },1000);
+                    }
+                },
+                error:function(e){
+                    layer.alert("提交失败！");
+                    return false;
+                }
+            });
+
+        });
+    })
+</script>
+</body>
+</html>

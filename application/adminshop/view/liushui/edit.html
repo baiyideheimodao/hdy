@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>编辑{$location['title']}</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="/longjue/public/layuiadmin/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/longjue/public/layuiadmin/style/admin.css" media="all">
+    <link rel="stylesheet" href="/longjue/public/kindeditor/themes/default/default.css" />
+    <script src="/longjue/public/kindeditor/kindeditor-all.js"></script>
+    <script src="/longjue/public/kindeditor/lang/zh-CN.js"></script>
+    <script>
+        var editor;
+        KindEditor.ready(function(K) {
+            var editor = K.editor({
+                                      allowFileManager : true
+                                  });
+            K('#insertfile').click(function() {
+                editor.loadPlugin('insertfile', function() {
+                    editor.plugin.fileDialog({
+                                                 fileUrl : K('#litpic').val(),
+                                                 clickFn : function(url, title) {
+                                                     K('#videoimg').val("{$data.xtsz|xtsz}"+url);
+                                                     $("#litpic1").attr('src',"{$data.xtsz|xtsz}"+url);
+                                                     editor.hideDialog();
+                                                 }
+                                             });
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-form" lay-filter="layuiadmin-app-form-list" id="layuiadmin-app-form-list" style="padding: 20px 30px 0 0;">
+            <div class="layui-form-item">
+                <label class="layui-form-label">标题</label>
+                <div class="layui-input-inline" >
+                    <input type="text" name="title"  autocomplete="off" class="layui-input" value="{$data.title}" style="width:450px;">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">缩略图</label>
+                <div class="layui-input-inline" style="width:400px;">
+                    <input type="text" name="videoimg" id="videoimg" autocomplete="off" class="layui-input" value="{$data.videoimg}" style="width:200px;display:inline-block;">
+                    <button id="insertfile" class="layui-btn" type="button">
+                        <i class="layui-icon ">&#xe60d;</i> 上传</button>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label"></label>
+                <img id="litpic1" src="{$data.videoimg}" width="200px">
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">视频</label>
+                <div class="layui-input-inline" >
+                    <video controls="controls" autoplay="autoplay" width="400">
+                        <source src="{$data.videourl}" type="video/mp4" />
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="status" value="0" title="待审核" {if $data.status==0}checked=""{/if}>
+                    <input type="radio" name="status" value="1" title="已发布" {if $data.status==1}checked=""{/if}>
+                    <input type="radio" name="status" value="2" title="拒绝"  {if $data.status==2}checked=""{/if}>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">排序</label>
+                <div class="layui-input-inline" >
+                    <input type="text" name="px" autocomplete="off" class="layui-input" value="{$data.px}" style="width:50px;">
+                </div>
+            </div>
+            <div class="layui-form-item" style="margin-bottom:50px">
+                <button class="layui-btn" lay-filter="layuiadmin-app-form-submit" lay-submit style="margin: 20px 0 40px 110px;" >确认提交</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/longjue/public/layuiadmin/layui/layui.js"></script>
+<script src="/longjue/public/layuiadmin/list.js"></script>
+<script src="/longjue/public/layuiadmin/jquery.min.js"></script>
+
+<script>
+    layui.config({
+        base: '/longjue/public/layuiadmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'form', 'upload','laydate','tree'], function(){
+        var $ = layui.$
+            , tree = layui.tree
+            ,upload = layui.upload
+            ,laydate = layui.laydate
+            ,form = layui.form;
+        laydate.render({
+                           elem: '#cjrq'
+                       });
+        form.on('submit(layuiadmin-app-form-submit)', function(data){
+            savedata('/longjue/admin.php/{$location[\'name\']}/edit/id/{$data.id}/action/save',data.field);
+        });
+    })
+</script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{extend name="base" /}
+{block name="table_tpl"}
+<script type="text/html" id="state_tpl">
+    <input type="checkbox" name="status" lay-skin="switch" lay-text="显示|隐藏" lay-filter="state_tpl"
+           value="{{ d.status }}" data-json="{{ encodeURIComponent(JSON.stringify(d)) }}" {{ d.status == 1 ? 'checked' : '' }}>
+</script>
+{/block}
+{block name="table_js"}
+table.render({
+    elem: '#news_type'
+    ,url: '{$url}'
+    ,toolbar: '#top_tool_bar'
+    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+    ,title: ''
+    ,method: 'post'
+    ,cols: [[
+        {field:'id', title:'ID', fixed: 'left', unresize: true, sort: true}
+        ,{field:'name', title:'名称'}
+{if condition="$type eq 2"}
+        ,{field:'p_name', title:'任务类型'}
+{/if}
+        ,{field:'sort', title:'排序'}
+        ,{field:'status', title:'状态', sort: true, templet: '#state_tpl', unresize: true}
+        ,{fixed: 'right', title:'操作', toolbar: '#right_tool_bar', width:150}
+    ]]
+    ,page: true
+});
+form.on('switch(state_tpl)', function(obj){
+var json = JSON.parse(decodeURIComponent($(this).data('json')));
+json = table.clearCacheKey(json);
+$.ajax({
+method:'post',
+type:'json',
+url:'/admin/Courseindex/edit',
+data:{id:json.id,status:(parseInt(json.status) === 1?0:1)},
+success:function (res) {
+layer.msg(res.msg);
+}
+})
+});
+{/block}

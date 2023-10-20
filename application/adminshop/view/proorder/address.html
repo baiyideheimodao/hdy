@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{$location.title}</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <link rel="stylesheet" href="/layuiadmin/layui/css/layui.css" media="all">
+  <style>
+    .layui-form-item .layui-input-inline{ width: calc(100% - 120px);}
+    .layui-form-item img{ width: 90%; display: block; margin: 0 auto; height: 60px; border: 1px solid#c2c2c2;margin: 5px 0;}
+  </style>
+</head>
+<body>
+
+  <div class="layui-form" lay-filter="layuiadmin-app-form-list" id="layuiadmin-app-form-list" style="padding: 20px 30px 0 0;">
+    <input value="{$data.id}" name="id" type="hidden">
+    <div class="layui-form-item">
+      <label class="layui-form-label">收货人</label>
+      <div class="layui-input-inline" >
+        <input type="text" name="name" lay-verify="required" disabled placeholder="请输入客户姓名" autocomplete="off" class="layui-input" value="{$data.name}">
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">电话</label>
+      <div class="layui-input-inline" >
+        <input type="text" name="mobile" lay-verify="required" disabled placeholder="电话" autocomplete="off" class="layui-input" value="{$data.mobile}">
+      </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">收货地址</label>
+      <div class="layui-input-inline" >
+        <input type="text" name="address" lay-verify="required" disabled placeholder="请输入收货地址" autocomplete="off" class="layui-input" value="{$data.address}-{$data.area}">
+      </div>
+    </div>
+
+    <div class="layui-form-item layui-hide">
+      <input type="button" lay-submit lay-filter="layuiadmin-app-form-submit" id="layuiadmin-app-form-submit" value="确认添加">
+      <input type="button" lay-submit lay-filter="layuiadmin-app-form-edit" id="layuiadmin-app-form-edit" value="确认编辑">
+    </div>
+  </div>
+
+
+</body>
+</html>

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>layuiAdmin 控制台主页一</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+  <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+</head>
+<body>
+
+  <div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+      <div class="layui-col-md8">
+        <div class="layui-row layui-col-space15">
+          <div class="layui-col-md12">
+            <div class="layui-card">
+              <div class="layui-card-header">今日看板</div>
+              <div class="layui-card-body">
+                <div class="layui-carousel layadmin-carousel layadmin-backlog">
+                  <div carousel-item>
+                    <ul class="layui-row layui-col-space10">
+                      <li class="layui-col-xs6">
+                        <a lay-href="/admin/zyhome/jrsh/type/0" class="layadmin-backlog-body">
+                          <h3>今日上户</h3>
+                          <p><cite>{$todaykh}</cite></p>
+                        </a>
+                      </li>
+                      <li class="layui-col-xs6">
+                        <a lay-href="/admin/zyhome/jrsh/type/3" class="layadmin-backlog-body">
+                          <h3>今日待服务</h3>
+                          <p><cite>{$todaygj}</cite></p>
+                        </a>
+                      </li>
+                      <li class="layui-col-xs6">
+                        <a lay-href="/admin/zyhome/jrsh/type/1" class="layadmin-backlog-body">
+                          <h3>今日成交</h3>
+                          <p><cite>{$todaykhover}</cite></p>
+                        </a>
+                      </li>
+                      <li class="layui-col-xs6">
+                        <a lay-href="/admin/zyhome/jrsh/type/2"  class="layadmin-backlog-body">
+                          <h3>今日待跟进</h3>
+                          <p><cite>{$todaygjdd}</cite></p>
+                        </a>
+                      </li>
+
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="layui-col-md4">
+        <div class="layui-card">
+          <div class="layui-card-header">客户汇总</div>
+          <div class="layui-card-body">
+            <div class="layui-carousel layadmin-carousel layadmin-backlog">
+              <div carousel-item>
+                <ul class="layui-row layui-col-space10">
+                  <li class="layui-col-xs6">
+                    <a lay-href="/admin/zyk/index/uid/{$Think.cookie.id}" class="layadmin-backlog-body">
+                      <h3>外呼资源</h3>
+                      <p><cite>{$whzyk}</cite></p>
+                    </a>
+                  </li>
+                  {volist name='$khcount' id='list'}
+                  <li class="layui-col-xs6">
+                    <a lay-href="/admin/kehu/index/ktype/{$list.Ktype}" class="layadmin-backlog-body">
+                      <h3>{$list.Ktype}</h3>
+                      <p><cite>{$list.count}</cite></p>
+                    </a>
+                  </li>
+                  {/volist}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-tab layui-tab-brief layadmin-latestData">
+          <ul class="layui-tab-title">
+            <li class="layui-this">今日上户</li>
+            <li>今日成交</li>
+            <li>今日待服务</li>
+            <li>今日待跟进</li>
+          </ul>
+          <div class="layui-tab-content">
+            <div class="layui-tab-item layui-show">
+              <table id="LAY-index-jrsh"></table>
+            </div>
+            <div class="layui-tab-item">
+              <table id="LAY-index-jrcj"></table>
+            </div>
+            <div class="layui-tab-item">
+              <table  class="layui-hide" id="LAY-index-jrdfw" lay-filter="LAY-index-jrdfw"></table>
+              <script type="text/html" id="test-table-toolbar-barDemo">
+                <a class="layui-btn layui-btn-xs"  lay-event="fwview">查看服务记录</a>
+                <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="fwadd">添加服务记录</a>
+              </script>
+            </div>
+            <div class="layui-tab-item">
+              <table id="LAY-index-jrdgj" class="layui-hide"  lay-filter="LAY-index-jrdgj"></table>
+              <script type="text/html" id="test-table-toolbar-genjin">
+                <a class="layui-btn layui-btn-xs"  lay-event="fwview">查看跟进记录</a>
+                <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="fwadd">添加跟进记录</a>
+              </script>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="__style__/layui/layui.js?t=1"></script>
+  <script>
+    layui.config({
+      base: '__style__/' //静态资源所在路径
+    }).extend({
+      index: 'lib/index' //主入口模块
+    }).use(['index', 'table','laytpl','console'], function(){
+      var table = layui.table
+      ,laytpl = layui.laytpl;
+      //今日上户
+      table.render({
+        elem: '#LAY-index-jrsh'
+        ,url: '/admin/zyhome/jrsh/zhonglei/0'
+        ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+        ,cols: [[
+          {type: 'numbers', fixed: 'left'}
+          ,{field: 'nowtime', title: '创建时间', sort: true, templet: function (d) {
+              return layui.util.toDateString(d.nowtime * 1000, "yyyy-MM-dd")
+            }
+          }
+          ,{field: 'Ksource', title: '客户来源'}
+          ,{field: 'Kproduct', title: '意向产品'}
+          ,{field: 'name', title: '联系人'}
+          ,{field: 'phone1', title: '电话'}
+
+        ]]
+        ,page: true
+        ,limits: [3,5,10]  //一页选择显示3,5或10条数据
+        ,limit: 10  //一页显示10条数据
+        ,parseData: function(res){ //将原始数据解析成 table 组件所规定的数据，res为从url中get到的数据
+          var result;
+          //console.log(this);
+          //console.log(JSON.stringify(res));
+          if(this.page.curr){
+            result = res.data.slice(this.limit*(this.page.curr-1),this.limit*this.page.curr);
+          }
+          else{
+            result=res.data.slice(0,this.limit);
+          }
+          return {
+            "code": res.code, //解析接口状态
+            "msg": res.msg, //解析提示文本
+            "count": res.count, //解析数据长度
+            "data": result //解析数据列表
+          };
+        }
+      });
+
+      //今日成交
+      table.render({
+        elem: '#LAY-index-jrcj'
+        ,url: '/admin/zyhome/jrsh/zhonglei/1'
+        ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+        ,cols: [[
+          {type: 'numbers', fixed: 'left'}
+          ,{field: 'nowtime', title: '下单时间', sort: true, templet: function (d) {
+              return layui.util.toDateString(d.nowtime * 1000, "yyyy-MM-dd")
+            }
+          }
+          ,{field: 'kh_name', title: '联系人'}
+          ,{field: 'kh_tel', title: '联系电话'}
+          ,{field: 'kh_email', title: '邮箱'}
+          ,{field: 'type_info', title: '产品'}
+          ,{field: 'num', title: '数量'}
+          ,{field: 'money', title: '金额'}
+
+        ]]
+
+        ,page: true
+        ,limits: [3,5,10]  //一页选择显示3,5或10条数据
+        ,limit: 10  //一页显示10条数据
+        ,parseData: function(res){ //将原始数据解析成 table 组件所规定的数据，res为从url中get到的数据
+          var result;
+          //console.log(this);
+          //console.log(JSON.stringify(res));
+          if(this.page.curr){
+            result = res.data.slice(this.limit*(this.page.curr-1),this.limit*this.page.curr);
+          }
+          else{
+            result=res.data.slice(0,this.limit);
+          }
+          return {
+            "code": res.code, //解析接口状态
+            "msg": res.msg, //解析提示文本
+            "count": res.count, //解析数据长度
+            "data": result //解析数据列表
+          };
+        }
+      });
+      //今日待服务
+      table.render({
+        elem: '#LAY-index-jrdfw'
+        ,url: '/admin/zyhome/jrsh/zhonglei/3'
+        ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+        ,cols: [[
+          {type: 'numbers', fixed: 'left'}
+          ,{field: 'nowtime', title: '创建时间', sort: true, templet: function (d) {
+              return layui.util.toDateString(d.nowtime * 1000, "yyyy-MM-dd")
+            }
+          }
+          ,{field: 'Ksource', title: '客户来源'}
+          ,{field: 'Kproduct', title: '意向产品'}
+          ,{field: 'name', title: '联系人'}
+          ,{field: 'phone1', title: '联系电话'}
+
+          ,{fixed: 'right', title:'操作', toolbar: '#test-table-toolbar-barDemo', width:260}
+        ]]
+        ,page: true
+        ,limits: [3,5,10]  //一页选择显示3,5或10条数据
+        ,limit: 10  //一页显示10条数据
+        ,parseData: function(res){ //将原始数据解析成 table 组件所规定的数据，res为从url中get到的数据
+          var result;
+          //console.log(this);
+          //console.log(JSON.stringify(res));
+          if(this.page.curr){
+            result = res.data.slice(this.limit*(this.page.curr-1),this.limit*this.page.curr);
+          }
+          else{
+            result=res.data.slice(0,this.limit);
+          }
+          return {
+            "code": res.code, //解析接口状态
+            "msg": res.msg, //解析提示文本
+            "count": res.count, //解析数据长度
+            "data": result //解析数据列表
+          };
+        }
+      });
+      //监听待服务事件
+      table.on('tool(LAY-index-jrdfw)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'fwview'){
+          var Urlss ="/admin/kehu/fwIndex/khid/"+data.id;
+          parent.layui.index.openTabsPage(Urlss, "查看服务记录");
+        } else if(obj.event === 'fwadd'){
+          //询问框
+          layer.open({
+            type: 2
+            ,title: '服务记录添加'
+            ,content: '/admin/kehu/fwadd/khid/'+data.id
+            ,maxmin: true
+            ,area: ['550px', '750px']
+            ,btn: ['确定', '取消']
+            ,yes: function(index, layero){
+              //点击确认触发 iframe 内容中的按钮提交
+              var submit = layero.find('iframe').contents().find("#layuiadmin-app-form-submit");
+              submit.click();
+            }
+          });
+        }
+      });
+      //今日待跟进
+      table.render({
+        elem: '#LAY-index-jrdgj'
+        ,url: '/admin/zyhome/jrsh/zhonglei/2'
+        ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+        ,cols: [[
+          {type: 'numbers', fixed: 'left'}
+          ,{field: 'nowtime', title: '创建时间', sort: true, templet: function (d) {
+              return layui.util.toDateString(d.nowtime * 1000, "yyyy-MM-dd")
+            }
+          }
+          ,{field: 'Ksource', title: '客户来源'}
+          ,{field: 'Kproduct', title: '意向产品'}
+          ,{field: 'name', title: '联系人'}
+          ,{field: 'phone1', title: '联系电话'}
+          ,{fixed: 'right', title:'操作', toolbar: '#test-table-toolbar-genjin', width:260}
+        ]]
+        ,page: true
+        ,limits: [3,5,10]  //一页选择显示3,5或10条数据
+        ,limit: 10  //一页显示10条数据
+        ,parseData: function(res){ //将原始数据解析成 table 组件所规定的数据，res为从url中get到的数据
+          var result;
+          //console.log(this);
+          //console.log(JSON.stringify(res));
+          if(this.page.curr){
+            result = res.data.slice(this.limit*(this.page.curr-1),this.limit*this.page.curr);
+          }
+          else{
+            result=res.data.slice(0,this.limit);
+          }
+          return {
+            "code": res.code, //解析接口状态
+            "msg": res.msg, //解析提示文本
+            "count": res.count, //解析数据长度
+            "data": result //解析数据列表
+          };
+        }
+      });
+
+      //监听行工具事件
+      table.on('tool(LAY-index-jrdgj)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'fwview'){
+          var Urlss ="/admin/kehu/gjIndex/khid/"+data.id;
+          parent.layui.index.openTabsPage(Urlss, "查看跟进记录");
+        } else if(obj.event === 'fwadd'){
+          //询问框
+          layer.open({
+            type: 2
+            ,title: '跟进记录添加'
+            ,content: '/admin/kehu/gjadd/khid/'+data.id
+            ,maxmin: true
+            ,area: ['550px', '750px']
+            ,btn: ['确定', '取消']
+            ,yes: function(index, layero){
+              //点击确认触发 iframe 内容中的按钮提交
+              var submit = layero.find('iframe').contents().find("#layuiadmin-app-form-submit");
+              submit.click();
+            }
+          });
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
+

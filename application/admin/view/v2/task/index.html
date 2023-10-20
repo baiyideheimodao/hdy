@@ -1,0 +1,303 @@
+{extend name="base" /}
+{block name="css"}
+<style>
+    .layadmin-maillist-fluid .layui-icon{color:green;}
+    .layadmin-maillist-fluid .me-content .layui-icon{font-size:10px;}
+    .layadmin-maillist-fluid .layadmin-contact-box{padding:20px;background-color: #fff;
+        border: 1px solid #e7eaec;overflow: hidden;}
+    .layadmin-maillist-fluid .layadmin-text-center{text-align: center;}
+    .layadmin-maillist-fluid .layadmin-text-center img{max-width: 50%;margin-top: 5px;border:1px dashed #9F9F9F;padding:5px;border-radius:5px;}
+    .layadmin-maillist-fluid .layadmin-font-blod{font-weight: 600;}
+    .layadmin-maillist-fluid .layadmin-maillist-img{margin-top: 5px;}
+    .layadmin-maillist-fluid .layadmin-textimg{line-height: 25px;margin-bottom: 10px;}
+    .layadmin-maillist-fluid .layadmin-address{line-height: 1.5;margin-bottom: 20px;}
+    .layadmin-maillist-fluid .layadmin-padding-left20{padding-left: 20px;}
+</style>
+<!--<link rel="stylesheet" href="__style__/style/template.css" media="all">-->
+{/block}
+{block name="table_tpl"}
+<script type="text/html" id="is_eval_tpl">
+    {{ d.is_eval == 1?'是':'否'}}
+</script>
+<script type="text/html" id="is_upt_img_tpl">
+    {{ d.is_upt_img == 1?'是':'否'}}
+</script>
+<script type="text/html" id="is_upt_word_tpl">
+    {{ d.is_upt_word == 1?'是':'否'}}
+</script>
+<script type="text/html" id="is_record_tpl">
+    {{ d.is_record == 1?'是':'否'}}
+</script>
+<script type="text/html" id="state_tpl">
+    {{# if(d.status == -1){ }}
+    <span style="color:#9f9f9f;">已取消</span>
+    {{# }else if(d.status == 0){ }}
+    <span style="color:orange;">待发布</span>
+    {{# }else{ }}
+    <span style="color:green;">已发布</span>
+    {{# } }}
+</script>
+<script type="text/html" id="image_tpl">
+    <img src="{{ d.image }}" style="width:100px;height:50px" onerror="this.src='/static/admin/images/blank.png'">
+</script>
+{/block}
+{block name="search"}
+<div class="layui-inline">
+    <label class="layui-form-label">标题</label>
+    <div class="layui-input-block">
+        <input type="text" name="title" placeholder="请输入" autocomplete="off" class="layui-input">
+    </div>
+</div>
+{/block}
+{block name="js"}
+{if condition="$mode eq 2"}
+<script src="__JS__/echarts.js"></script>
+{/if}
+{/block}
+{block name="table_js"}
+table.render({
+    elem: '#news_type'
+    ,url: '/admin/v2.Task/index'
+    ,toolbar: '#top_tool_bar'
+    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+    ,title: ''
+    ,method: 'post'
+    {if condition="$type eq 11"}
+    ,cols: [[
+    // {type: 'checkbox', fixed: 'left'},
+        {field:'id', title:'ID', unresize: true, sort: true}
+        ,{field:'image', title:'封面', templet:'#image_tpl'}
+        ,{field:'title', title:'标题'}
+        ,{field:'depict', title:'描述'}
+        ,{field:'task_name', title:'任务'}
+        ,{field:'start_date', title:'开始日期'}
+        ,{field:'end_date', title:'结束日期'}
+        ,{field:'class_name', title:'班级'}
+        ,{field:'status', title:'状态', sort: true,templet:'#state_tpl'}
+,{title:'操作',width:250, toolbar: '#right_tool_bar'}
+    ]]
+    {/if}
+    {if condition="$type eq 12 or $type eq 13 or $type eq 14"}
+    ,cols: [[
+    // {type: 'checkbox', fixed: 'left'},
+        {field:'id', title:'ID', unresize: true, sort: true}
+        ,{field:'image', title:'封面', templet:'#image_tpl'}
+        ,{field:'title', title:'标题'}
+        ,{field:'depict', title:'描述'}
+        ,{field:'task_name', title:'课前任务'}
+        ,{field:'start_date', title:'开始日期'}
+        <!--,{field:'end_date', title:'结束日期'}-->
+        ,{field:'class_name', title:'班级'}
+        ,{field:'class_teacher_name', title:'班级老师'}
+        ,{field:'is_record', title:'考勤', sort: true,templet:'#is_record_tpl'}
+        ,{field:'is_eval', title:'评价', sort: true,templet:'#is_eval_tpl'}
+        ,{field:'is_upt_img', title:'传图', sort: true,templet:'#is_upt_img_tpl'}
+        ,{field:'is_upt_word', title:'文字', sort: true,templet:'#is_upt_word_tpl'}
+        ,{field:'tasked_name', title:'课后任务'}
+        ,{field:'status', title:'状态', sort: true,templet:'#state_tpl'}
+        ,{title:'操作',width:250, toolbar: '#right_tool_bar'}
+    ]]
+    {/if}
+
+    {if condition="$type eq 21 or $type eq 22"}
+    ,cols: [[
+    // {type: 'checkbox', fixed: 'left'},
+        {field:'id', title:'ID', unresize: true, sort: true}
+        ,{field:'image', title:'封面', templet:'#image_tpl'}
+        ,{field:'title', title:'标题'}
+        ,{field:'depict', title:'描述'}
+        ,{field:'task_name', title:'{if condition="$type neq 11"}课前{/if}任务'}
+        ,{field:'start_date', title:'开始日期'}
+        <!--,{field:'end_date', title:'结束日期'}-->
+        ,{field:'base_name', title:'基地'}
+        ,{field:'base_teacher_name', title:'基地老师'}
+        ,{field:'person_num', title:'限制人数'}
+        ,{field:'is_record', title:'考勤', sort: true,templet:'#is_record_tpl'}
+        ,{field:'is_eval', title:'评价', sort: true,templet:'#is_eval_tpl'}
+        ,{field:'is_upt_img', title:'传图', sort: true,templet:'#is_upt_img_tpl'}
+        ,{field:'is_upt_word', title:'文字', sort: true,templet:'#is_upt_word_tpl'}
+        ,{field:'tasked_name', title:'课后任务'}
+        ,{field:'status', title:'状态', sort: true,templet:'#state_tpl'}
+        ,{title:'操作',width:250, toolbar: '#right_tool_bar'}
+    ]]
+    {/if}
+    {if condition="$type eq 23"}
+    ,cols: [[
+        // {type: 'checkbox', fixed: 'left'},
+        {field:'id', title:'ID',width:80, unresize: true, sort: true}
+        ,{field:'image', title:'封面', templet:'#image_tpl'}
+        ,{field:'title', title:'标题'}
+        ,{field:'depict', title:'描述'}
+        ,{field:'task_name', title:'任务'}
+        ,{field:'start_date', title:'开始日期'}
+        ,{field:'end_date', title:'结束日期'}
+        ,{field:'teacher_name', title:'评委老师'}
+        ,{field:'person_num', title:'限制人数'}
+        ,{field:'status', title:'状态', sort: true,templet:'#state_tpl'}
+,{title:'操作',width:300, toolbar: '#right_tool_bar'}
+    ]]
+    {/if}
+    ,page: true
+    ,where:{
+        mode:'{$mode}',
+        type:'{$type}'
+    }
+});
+table.on('rowDouble(news_type)', function(obj){
+var data = obj.data;
+var targetElement = obj.tr[0];
+if(targetElement.nextSibling && targetElement.nextSibling.getAttribute('rowType') === 'rowDetail'){
+$('.card-close').click();
+return false;
+}
+var newNode = document.createElement("tr");
+newNode.setAttribute('class','rowDetail-'+data.id);
+newNode.setAttribute('rowType','rowDetail');
+newNode.setAttribute('style','display:none;');
+var td = document.createElement("td");
+td.setAttribute('colspan',targetElement.cells.length);
+td.innerHTML = `
+<div class="layui-card">
+    <div class="layui-card-header">任务详情<i class="layui-icon layui-icon-close card-close" style="cursor:pointer;" title="关闭">关闭</i></div>
+    <div class="layui-card-body layadmin-maillist-fluid">
+        <div class="layadmin-contact-box" >
+            <div class="layui-col-md4 layui-col-sm6">
+                <a href="javascript:;">
+                    <div class="layadmin-text-center">
+                        <img src="`+data.image+`" onerror="this.src='/static/admin/images/blank.png'">
+                        {if condition="$type eq 11"}
+                        <div class="layadmin-maillist-img layadmin-font-blod">起始日期：`+data.start_date+` ~ `+data.end_date+`</div>
+                        {else/}
+                        <div class="layadmin-maillist-img layadmin-font-blod">开始日期：`+data.start_date+`</div>
+                        {/if}
+                        {if condition="$mode eq 2 and $type neq 23"}
+                        <div class="layadmin-maillist-img layadmin-font-blod">
+                            课中要求：<i class="layui-icon `+(data.is_record == 1?'layui-icon-ok-circle':'layui-icon-circle')+`"></i>
+                            考勤
+                            <i class="layui-icon `+(data.is_eval == 1?'layui-icon-ok-circle':'layui-icon-circle')+`"></i>
+                            评价
+                            <i class="layui-icon `+(data.is_upt_img == 1?'layui-icon-ok-circle':'layui-icon-circle')+`"></i>
+                            上传图片
+                            <i class="layui-icon `+(data.is_upt_word == 1?'layui-icon-ok-circle':'layui-icon-circle')+`"></i>
+                            上传文字
+                        </div>
+                        {/if}
+                    </div>
+                </a>
+            </div>
+
+            <div class="layui-col-md4 layadmin-padding-left20 layui-col-sm4 me-content">
+                <h3 class="layadmin-textimg">
+                    <i class="layui-icon layui-icon-circle-dot"></i>
+                    任务标题：`+(data.title?data.title:`未设置标题`)+`
+                </h3>
+                {if condition="$mode eq 1"}
+                <p class="layadmin-textimg">
+                    <i class="layui-icon layui-icon-circle-dot"></i>
+                    派发班级：`+data.class_name+`
+                </p>
+                {/if}
+                {if condition="$type eq 13 or $type eq 21 or $type eq 22"}
+                <p class="layadmin-textimg">
+                    <i class="layui-icon layui-icon-circle-dot"></i>
+                    基地名称：`+data.base_name+`
+                </p>
+                {/if}
+                <p class="layadmin-textimg">
+                    <i class="layui-icon layui-icon-circle-dot"></i>
+                    {if condition="$type eq 11 or $type eq 23"}
+                    任务名称：`+data.task_name+`
+                    {else/}
+                    课前任务：`+data.task_name+`
+                    {/if}
+                </p>
+                {if condition="$type neq 11 and $type neq 23"}
+                <p class="layadmin-textimg">
+                    <i class="layui-icon layui-icon-circle-dot"></i>
+                    课后任务：`+data.tasked_name+`
+                </p>
+                {/if}
+                {if condition="$type eq 23"}
+                <p class="layadmin-textimg">
+                    <i class="layui-icon layui-icon-circle-dot"></i>
+                    评委老师：`+data.teacher_name+`
+                </p>
+                {/if}
+                <div class="layadmin-address">
+                    <i class="layui-icon layui-icon-circle-dot"></i>
+                    描述：`+(data.depict?data.depict:`未设置描述`)+`
+                </div>
+            </div>
+            <div class="layui-col-md4 layadmin-padding-left20 layui-col-sm4">
+                <div id="main">
+                    <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+`;
+<!--newNode.setAttribute('loinsContent', $(obj.tr).attr('data-index'))-->
+newNode.appendChild(td);
+<!--newNode.innerHTML = td;-->
+var parent = targetElement.parentNode;
+if (parent.lastChild == targetElement) {
+parent.appendChild(newNode);
+$('.rowDetail-'+data.id).slideDown('slow');
+} else {
+parent.insertBefore(newNode, targetElement.nextSibling);
+$('.rowDetail-'+data.id).slideDown('slow');
+}
+$('.card-close').on('click',function(){
+$(this).parent().parent().parent().parent().slideUp('slow').remove();
+})
+{if condition="$mode eq 2"}
+var myChart = echarts.init(document.getElementById('main'));
+var join_num = data.join_num;
+var no_join_num = data.person_num - join_num;
+var join_rate = join_num / data.person_num * 100;
+var no_join_rate = no_join_num / data.person_num * 100;
+var option = {
+title: {
+text: '报名情况',
+left: 'center',
+top: 'center'
+},
+series: [
+{
+type: 'pie',
+data: [
+{
+value: join_num,
+name: '已报名'
+},
+{
+value: no_join_num,
+name: '未报名'
+}
+],
+radius: [join_rate+'%', no_join_rate+'%']
+}
+]
+};
+myChart.setOption(option);
+window.onresize = function() {
+myChart.resize();
+};
+{/if}
+});
+form.on('switch(state_tpl)', function(obj){
+    var json = JSON.parse(decodeURIComponent($(this).data('json')));
+    json = table.clearCacheKey(json);
+    $.ajax({
+        method:'post',
+        type:'json',
+        data:{id:json.id,status:(parseInt(json.status) === 1?0:1)},
+        url:'/admin/v2.task/state',
+        success:function (res) {
+            layer.msg(res.msg);
+        }
+    })
+});
+
+{/block}

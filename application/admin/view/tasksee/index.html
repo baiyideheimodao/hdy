@@ -1,0 +1,306 @@
+{extend name="base" /}
+{block name="css"}
+<link rel="stylesheet" href="__style__/dtree/dtree.css?t=142568957" media="all">
+<link rel="stylesheet" href="__style__/dtree/font/dtreefont.css?t=142568957" media="all">
+{/block}
+{block name="js"}
+<script src="__JS__/xm-select.js"></script>
+<script>
+    function cancelTask(id){
+        layer.confirm('真的取消当前任务吗', function(index){
+            $.ajax({
+                       method:'post',
+                       type:'json',
+                       data:{},
+                       url:'/admin/v2.tasksee/cancelTask?id='+id,
+                       success:function (res) {
+                           layer.msg(res.msg);
+                           layer.close(index);
+                           table.reload('news_type');
+                       }
+                   })
+            return false;
+        });
+    }
+    function viewTask(id) {
+        var view = layer.open({
+                                        type: 2
+                                        ,title: '进度查看'
+                                        ,content: '/admin/v2.tasksee/processView?id='+id
+                                        ,area: ['450px', '270px']
+                                        ,anim:5
+                                        ,maxmin:true
+        });
+        layer.full(view);
+    }
+</script>
+{/block}
+{block name="table_tpl"}
+<script type="text/html" id="bar_tpl">
+    {{# if(d.status_text == 3){ }}
+    {{# }else{ }}
+    <a class="layui-btn layui-btn-xs layui-btn-primary" title="进度查看" lay-event="tasksee_view" onclick="viewTask('{{ d.id }}')">进度查看</a>
+    <a class="layui-btn layui-btn-xs layui-btn-danger" title="取消任务" lay-event="tasksee_cancel" onclick="cancelTask('{{ d.id }}')">取消任务</a>
+    {{# } }}
+</script>
+<script type="text/html" id="status_tpl">
+    {{# if(d.status_text == 3){ }}
+    <span style="color:#9f9f9f;">已取消</span>
+    {{# }else if(d.status_text == 2){ }}
+    <span style="color:orange;">已逾期</span>
+    {{# }else{ }}
+    <span style="color:green;">执行中</span>
+    {{# } }}
+</script>
+<script type="text/html" id="mode_tpl">
+    {{ d.mode == 1 ? '<button class="layui-btn layui-btn-normal layui-btn-xs">必选项目</button>' : '<button class="layui-btn layui-btn-danger layui-btn-xs">达人项目</button>' }}
+</script>
+<script type="text/html" id="type_tpl">
+    {{ d.type == 11 ? '<button class="layui-btn layui-btn-normal layui-btn-xs">家庭</button>' : (d.type == 12 ? '<button class="layui-btn layui-btn-normal layui-btn-xs">校内</button>' : (d.type == 13 ? '<button class="layui-btn layui-btn-normal layui-btn-xs">基地</button>' : (d.type == 21 ? '<button class="layui-btn layui-btn-danger layui-btn-xs">职业活动</button>' : (d.type == 22 ? '<button class="layui-btn layui-btn-danger layui-btn-xs">公益活动</button>' : '<button class="layui-btn layui-btn-danger layui-btn-xs">劳动大赛</button>')))) }}
+</script>
+<script type="text/html" id="admin_tpl">
+    {{ d.admin_id == 1 ? '系统' : d.admin_name }}
+</script>
+{/block}
+{block name="search"}
+<div class="layui-inline">
+    <label class="layui-form-label">区域</label>
+    <div class="layui-input-block">
+        <input type="hidden" name="area_ids" value="">
+        <input name="area_names" data-id="area_ids" data-tpl="checkAreas" data-level="3" type="text" class="layui-input" placeholder="选择区县" readonly>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">学校</label>
+    <div class="layui-input-block">
+        <div id="school_id" style="width:212px">
+            <select name="school_id" class="layui-input" placeholder="学校选择">
+            </select>
+        </div>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">年级</label>
+    <div class="layui-input-block">
+        <div id="grade_id" style="width:212px"></div>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">名称</label>
+    <div class="layui-input-block">
+        <input type="text" name="name" placeholder="请输入" autocomplete="off" class="layui-input">
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">状态</label>
+    <div class="layui-input-block">
+        <select name="status" class="layui-select" lay-filter="grade_id">
+            <option value=""></option>
+            <option value="1">执行中</option>
+            <option value="2">已过期</option>
+            <option value="3">已取消</option>
+        </select>
+    </div>
+</div>
+{/block}
+{block name="other_reset"}
+$('#school_id').html(`<select name="school_id" class="layui-input" placeholder="学校选择"></select>`);
+$('#grade_id').html('');
+$('input[name="area_ids"]').val('');
+$('input[name="grade_id"]').val('');
+loadGrade();
+$('#search_form')[0].reset();
+isReset = true;
+setTimeout(function(){
+$('#table-search').click();
+},100);
+return false;
+{/block}
+{block name="table_js"}
+table.render({
+elem: '#news_type'
+,url: '/admin/v2.tasksee/index'
+,toolbar: '#top_tool_bar'
+,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+,title: ''
+,method: 'post'
+,cols: [[
+{type: 'numbers', title:'#', fixed: 'left'}
+,{field:'mode', title:'模式', templet: '#mode_tpl'}
+,{field:'type', title:'类型', templet: '#type_tpl'}
+,{field:'title', title:'名称'}
+,{field:'range_time', title:'开始日期',width:200}
+, {field: 'end_date', title: '结束时间'}
+,{field:'area_name', title:'区域'}
+,{field:'school_name', title:'学校'}
+,{field:'grade_name', title:'年级'}
+,{field:'class_name', title:'班级'}
+,{field:'status_text', title:'状态',templet: '#status_tpl'}
+,{field:'create_time', title:'创建日期', sort: true}
+,{field:'admin_name', title:'创建人', sort: true, templet: '#admin_tpl'}
+,{field:'status_text',title:'操作',width:200, templet: '#bar_tpl'}
+
+]]
+,page: true
+});
+function openLayer(obj,url,text,type,callback) {
+var choosesName = $(obj).attr('name');
+var choosesId = $(obj).attr('data-id');
+var tplId = $(obj).attr('data-tpl');
+var level = $(obj).attr('data-level');
+var tpl='<div style="width:382px; height:338px;overflow-y: auto;">\
+    <div id="'+tplId+'" style="padding:10px 0;"></div>\
+</div>';
+layer.open({
+type:1,
+title:'选择'+text,
+area:['400px','450px'],
+content:tpl,
+success:function(){
+$.ajax({
+url: url,
+type:'post',
+success:function(res){
+dtree.render({
+elem: "#"+tplId,
+data: res.trees,
+icon: "2",  //修改二级图标样式
+checkbarType: "no-all", // 默认就是all，其他的值为： no-all  p-casc   self  only
+checkbar: parseInt(type) === 0  //开启复选框
+});
+}
+});
+},
+btn: ['确定'],
+btnAlign:'c',
+yes: function(){
+if(type == 0){
+var ids=[],names=[];
+var check=dtree.getCheckbarNodesParam(tplId);
+if(check.length==0){
+layer.msg('请选择'+text);
+return;
+}
+var num = 0;
+for(var m=0; m<check.length; m++){
+if(parseInt(check[m].level) > (parseInt(level)-1)){
+ids.push(check[m].nodeId);
+names.push(check[m].context);
+num ++;
+}
+}
+if(num == 0){
+layer.msg('请选择'+text);
+return;
+}
+$('[name="'+choosesName+'"]').val(names.join(','));
+$('[name="'+choosesId+'"]').val(ids.join(','));
+}else{
+var check=dtree.getNowParam(tplId);
+if(check.length==0){
+layer.msg('请选择'+text);
+return;
+}
+if(check.level < 4){
+layer.msg('请选择'+text);
+return;
+}
+$('[name="'+choosesName+'"]').val(check.context);
+$('[name="'+choosesId+'"]').val(check.nodeId);
+ids = [check.nodeId];
+names = [check.context];
+}
+callback(ids,names);
+layer.closeAll();
+}
+})
+}
+$('[name="area_names"]').on('click',function(){
+var schoolBox =$('#school_id');
+openLayer(this,"/admin/common/getAreaDtrees",'区县',0,function () {
+schoolBox.html('');
+$.ajax({
+url: '/admin/common/getSchools',
+type:'post',
+data:{'area_ids':$('[name=area_ids]').val()},
+success:function(res){
+if(res.length > 0){
+var keys = [];
+//通过循环遍历将数据赋值到temp这个二维数组中
+for (var i = 0; i < res.length; i++) {
+var child = res[i].child;
+var children = [];
+for (var j = 0; j < child.length; j++){
+children.push({
+name:child[j].school_name,
+value:child[j].id
+});
+}
+var temp = {
+"name": res[i].name,
+"children": children
+};
+keys.push(temp)
+}
+xmSelect.render({
+el: '#school_id',
+name:'school_id',
+toolbar:{
+show: true,
+},
+paging:true,
+pageSize: 5,
+filterable: true,
+height: '500px',
+data: keys
+})
+}else{
+schoolBox.html('<select name="school_id"><option value=""></option></select>')
+}
+},
+error:function () {
+schoolBox.html('<select name="school_id"><option value=""></option></select>')
+}
+});
+});
+});
+function loadGrade() {
+var gradeBox =$('#grade_id');
+$.ajax({
+url: '/admin/common/getGrades',
+type:'post',
+success:function(res){
+if(res.length > 0){
+var keys = [];
+//通过循环遍历将数据赋值到temp这个二维数组中
+for (var i = 0; i < res.length; i++) {
+var temp = {
+"name": res[i].name,
+"value": res[i].id
+};
+keys.push(temp)
+}
+xmSelect.render({
+el: '#grade_id',
+name:'grade_id',
+paging:true,
+pageSize: 5,
+direction: 'down',
+toolbar:{
+show: true,
+},
+height: '300px',
+data: keys
+})
+}else{
+gradeBox.html('<select name="grade_id"><option value=""></option></select>')
+}
+},
+error:function () {
+gradeBox.html('<select name="grade_id"><option value=""></option></select>')
+}
+});
+}
+
+loadGrade();
+{/block}

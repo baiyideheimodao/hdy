@@ -1,0 +1,36 @@
+{extend name="tree_base" /}
+{block name="table_tpl"}
+{/block}
+{block name="search"}
+{/block}
+{block name="js"}
+{/block}
+{block name="table_js"}
+var renderTable = function (){
+    layer.load(2);
+    treetable.render({
+        treeColIndex: 1, //树形图标显示在第几列
+        treeSpid: 0, //最上级的父级id
+        treeIdName: 'id', //id字段的名称
+        treePidName: 'p_id', //pid字段的名称
+        treeDefaultClose: false, //是否默认折叠
+        treeLinkage: true, //父级展开时是否自动展开所有子级
+        elem: '#news_type',
+        url: '/admin/setting/area',
+        toolbar: '#top_tool_bar',
+        method: 'post',
+        page: false,
+        cols: [[
+            {field:'id', title:'ID', unresize: true,hide:true},
+            {field: 'name', title: '名称'},
+            {field: 'sort', title: '排序'},
+            {fixed: 'right',width:'220', title:'操作', toolbar: '#right_tool_bar'}
+        ]],
+        done: function () {
+            layer.closeAll('loading');
+        }
+    });
+};
+
+renderTable();
+{/block}

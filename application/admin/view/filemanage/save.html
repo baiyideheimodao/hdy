@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+
+</head>
+
+<body>
+
+
+<div class="layui-form" lay-filter="layuiadmin-form-tags" id="layuiadmin-app-form-tags"
+     style="padding: 20px 30px 20px 0;background-color:#fff">
+    <input name="id" type="hidden" value="{$info.id|default=''}">
+    <input name="image" value="{$info.image|default='/static/webchat/logo.png'}" type="hidden">
+    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+        <legend>基础信息</legend>
+    </fieldset>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">资料名称</label>
+        <div class="layui-input-block">
+            <input name="name" value="{$info.name|default=''}" lay-verify="required" type="text" class="layui-input" placeholder="请输入资料名称">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">科目</label>
+        <div class="layui-input-block">
+            <select name="subject_id" lay-filter="subjectid" lay-verify="required">
+                <option value="">选择科目</option>
+                {volist name="subject" id="item"}
+                <option value="{$item.id}" {if condition="isset($info) and $info.subject_id eq $item.id"}selected{/if}>{$item.name}</option>
+                {/volist}
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">资料封面</label>
+        <div class="layui-input-block">
+            <div class="layui-upload">
+                <div class="layui-upload-drag" id="ques_images">
+                    {if condition="!isset($info) or $info.image eq ''"}
+                    <i class="layui-icon"></i>
+                    <p>点击上传缩率图，或将文件拖拽到此处</p>
+                    {else/}
+                    <img class="layui-upload-img" src="{$info['image']}" >
+                    {/if}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">资料描述</label>
+        <div class="layui-input-block" style="width:calc(100% - 600px);">
+            <textarea lay-verify="required" rows="4" name="desc" class="layui-textarea" lay-verify="required"
+                      placeholder="请输入任务描述">{$info.desc|default=''}</textarea>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">资料附件</label>
+        <div class="layui-input-inline" style="width:calc(100% - 600px);display: flex;">
+            <input name="file_url" value="{$info.file_url|default=''}" lay-verify="required" type="text" class="layui-input file_url" placeholder="请上传附件" style="width: 50%">
+            <button type="button" class="layui-btn" id="file_botton" style="margin-left: 5px;"><i class="layui-icon"></i>上传文件</button>
+        </div>
+    </div>
+<!-- layui-hide-->
+    <div class="layui-form-item layui-hide">
+        <input type="button" lay-submit lay-filter="layuiadmin-app-form-submit" id="layuiadmin-app-form-submit"
+               value="确定">
+    </div>
+</div>
+
+<script src="__style__/layui/layui.js"></script>
+<script>
+    layui.config({
+        base: '__style__/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'form', 'upload', 'table','croppers'], function () {
+        var $ = layui.$
+            , upload = layui.upload
+            ,croppers = layui.croppers
+            , form = layui.form;
+        var chooseType = parseInt("{$info.type|default=0}");
+
+        //封面图片上传
+        croppers.render({
+            elem: '#ques_images'
+            ,saveW:400     //保存宽度
+            ,saveH:400   //保存高度
+            ,mark:1/1    //选取比例
+            ,area:'900px'  //弹窗宽度
+            , url: '/admin/question/upload_pic'
+            , done: function (res) {
+                //如果上传失败
+                if (res.code > 0) {
+                    return layer.msg('上传失败');
+                }else{
+                    $('#ques_images').html('<img class="layui-upload-img" src="' + res.data.src + '" width="300">');
+                    $('input[name=image]').val(res.data.src);
+                }
+
+            }
+            , error: function () {
+                //演示失败状态，并实现重传
+                $('#ques_images').html('<i class="layui-icon"></i><p>点击上传，或将文件拖拽到此处</p>');
+            }
+        });
+
+        //附件上传
+        //指定允许上传的文件类型
+        upload.render({
+            elem: '#file_botton'
+            ,url: '/admin/filemanage/upload' //此处配置你自己的上传接口即可
+            ,accept: 'file' //普通文件
+            ,done: function(res){
+                layer.msg(res.msg);
+                $(".file_url").val(res.filename);
+            }
+        });
+
+        form.on('submit(layuiadmin-app-form-submit)', function (data) {
+            var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+            $.ajax({
+                url: "{$info.url|default='/admin/filemanage/add'}",
+                type: 'POST',
+                data: data.field,
+                dataType: "json",
+                success: function (data) {
+                    layer.msg(data.msg);
+                    //隐藏刷新页面返回菜单功能
+                    if (data.code == 1) {
+                        setTimeout(function () {
+                            parent.location.reload(); //重载加载页面
+                            parent.layer.close(index); //再执行关闭
+                        }, 1000);
+                    }
+                },
+                error: function (e) {
+                    layer.alert("提交失败！");
+                    return false;
+                }
+            });
+
+        });
+
+
+    })
+</script>
+</body>
+</html>

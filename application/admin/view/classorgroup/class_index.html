@@ -1,0 +1,203 @@
+{extend name="base" /}
+{block name="table_tpl"}
+<script type="text/html" id="state_tpl">
+    <input type="checkbox" name="state" lay-skin="switch" lay-text="显示|隐藏" lay-filter="state_tpl"
+           value="{{ d.state }}" data-json="{{ encodeURIComponent(JSON.stringify(d)) }}" {{ d.state == 1 ? 'checked' : '' }}>
+</script>
+<script type="text/html" id="user_num_bar">
+    <a class="layui-btn layui-btn-xs" lay-event="user" onclick="openView('{{ d.id }}','{{  d.name }}',1)">{{ d.user_num }}</a>
+</script>
+<script type="text/html" id="task_num_bar">
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="task" onclick="openView('{{ d.id }}','{{  d.name }}',2)">{{ d.task_num }}</a>
+</script>
+{/block}
+{block name="search"}
+<div class="layui-form-item">
+    <label class="layui-form-label">区域</label>
+    <div class="layui-input-inline">
+        <select id="province" lay-filter="province" lay-search="" lay-verify="required" name="province_id">
+            <option value="">请选择省</option>
+            {volist name="$area.province" id="v"}
+            <option value="{$v.id}">{$v.name}</option>
+            {/volist}
+        </select>
+    </div>
+    <div class="layui-input-inline">
+        <select id="city" lay-filter="city" lay-search="" lay-verify="required" name="city_id">
+            {if $area.city == []}
+            <option value="">请选择市</option>
+            {else/}
+            <option value="">请选择市</option>
+            {volist name="$area.city" id="v"}
+            <option value="{$v.id}">{$v.name}</option>
+            {/volist}
+            {/if}
+        </select>
+    </div>
+    <div class="layui-input-inline">
+        <select id="area" lay-search="" lay-verify="required" name="area_id" lay-filter="area_id">
+            {if $area.area == []}
+            <option value="">请选择县/区</option>
+            {else/}
+            <option value="">请选择县/区</option>
+            {volist name="$area.area" id="v"}
+            <option value="{$v.id}" {if condition="isset($info) and $info.area_id eq $v.id"}selected{/if}>{$v.name}</option>
+            {/volist}
+            {/if}
+        </select>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">学校</label>
+    <div class="layui-input-block">
+        <select name="school_id" lay-filter="school_id">
+            <option value="">选择学校</option>
+            {volist name="school" id="item"}
+            <option value="{$item.id}" {if condition="isset($info) and $info.school_id eq $item.id"}selected{/if}>{$item.name}</option>
+            {/volist}
+        </select>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">年级</label>
+    <div class="layui-input-block">
+        <select name="grade_id" lay-filter="grade_id">
+            <option value="">选择年级</option>
+            {volist name="grade" id="item"}
+            <option value="{$item.id}"  {if condition="isset($info) and $info.grade_id eq $item.id"}selected{/if}>{$item.name}</option>
+            {/volist}
+        </select>
+    </div>
+</div>
+{/block}
+
+
+
+
+{block name="js"}
+<script>
+    function openView(id,name,type){
+        var index = layer.open({
+                                   type: 2
+                                   ,title: '班组【'+name+'】'+(type == 1?'用户':'项目')+'：'
+                                   ,content: '/admin/common/'+(type == 1?'user':'task')+'?group_id=0&class_id='+id
+                                   ,area: ['450px', '200px']
+                                   ,btn: false
+                                   ,maxmin:true
+                               });
+        layer.full(index);
+    }
+</script>
+{/block}
+{block name="table_js"}
+table.render({
+    elem: '#news_type'
+    ,url: '/admin/classorgroup/class_index'
+    ,toolbar: '#top_tool_bar'
+    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+    ,title: ''
+    ,method: 'post'
+    ,cols: [[
+        {field:'id', title:'ID', fixed: 'left', unresize: true, sort: true}
+        ,{field:'name', title:'名称'}
+        ,{field:'user_num', title:'人数', toolbar:'#user_num_bar'}
+        ,{field:'task_num', title:'项目数', toolbar:'#task_num_bar'}
+        ,{field:'area_name', title:'区域'}
+        ,{field:'school_name', title:'学校'}
+        ,{field:'grade_name', title:'年级'}
+        ,{field:'state', title:'状态', sort: true, templet: '#state_tpl', unresize: true}
+        ,{field:'create_time', title:'创建日期'}
+        ,{fixed: 'right', title:'操作',width:320, toolbar: '#right_tool_bar'}
+    ]]
+    ,page: true
+});
+form.on('switch(state_tpl)', function(obj){
+    var json = JSON.parse(decodeURIComponent($(this).data('json')));
+    json = table.clearCacheKey(json);
+    $.ajax({
+        method:'post',
+        type:'json',
+        url:'/admin/classorgroup/class_edit',
+        data:{id:json.id,state:(parseInt(json.state) === 1?0:1)},
+        success:function (res) {
+            layer.msg(res.msg);
+        }
+    })
+});
+var school = {:json_encode($school,JSON_UNESCAPED_UNICODE)};
+
+var provinceId = ""; // 省id
+var cityId     = ""; // 市id
+var areaId     = ""; // 县/区id
+//监听省下拉框
+form.on('select(province)', function(dataObj){
+//移除城市下拉框所有选项
+$("#city").empty();
+var cityHtml = '<option value="">请选择市</option>';
+$("#city").html(cityHtml);
+var areaHtml = '<option value="">请选择县/区</option>';
+$("#area").html(areaHtml);
+// 省id
+provinceId = $('select[name=province_id]').val();
+//异步加载下拉框数据
+$.post("/admin/school/addressList",{"id":provinceId},function (res) {
+// var res = JSON.parse(res);
+if(res.code==100){
+var $html = "";
+if(res.data != null) {
+$.each(res.data, function (index, item) {
+$html += "<option value='" + item.id + "'>" + item.name + "</option>";
+});
+$("#city").append($html);
+// append后必须从新渲染
+form.render('select');
+}
+}else{
+layer.msg(res.msg)
+}
+},'json');
+
+});
+
+// 监听市下拉框
+form.on('select(city)', function(dataObj){
+// 移除县区下拉框所有选项
+$("#area").empty();
+var html = '<option value="">请选择县/区</option>';
+$("#area").html(html);
+// 市id
+cityId = $('select[name=city_id]').val();
+// 异步加载下拉框数据
+$.post("/admin/school/addressList",{"id":cityId},function (res) {
+if(res.code==100){
+var $html = "";
+if(res.data != null) {
+$.each(res.data, function (index, item) {
+$html += "<option value='" + item.id + "'>" + item.name + "</option>";
+});
+$("#area").append($html);
+//append后必须从新渲染
+form.render('select');
+}
+}else{
+layer.msg(res.msg)
+}
+},'json');
+
+});
+
+
+//筛选区域
+form.on('select(area_id)', function(data){
+var html = `<option value=""></option>`;
+$('select[name=school_id]').html(html);
+$('.maker-control').hide();
+$.each(school,function (key,value) {
+if(value.area_id == data.value){
+html += `<option value="`+value.id+`">`+value.name+`</option>`;
+}
+});
+$('select[name=school_id]').html(html);
+form.render('select');
+});
+{/block}

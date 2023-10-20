@@ -1,0 +1,52 @@
+{extend name="tree_base" /}
+{block name="table_tpl"}
+<script type="text/html" id="state_tpl">
+    <input type="checkbox" name="status" lay-skin="switch" lay-text="启用|禁用" lay-filter="state_tpl"
+           value="{{ d.status }}" data-json="{{ encodeURIComponent(JSON.stringify(d)) }}" {{ d.status == 1 ? 'checked' : '' }}>
+</script>
+{/block}
+{block name="table_js"}
+var renderTable = function (){
+    layer.load(2);
+    treetable.render({
+        treeColIndex: 1, //树形图标显示在第几列
+        treeSpid: 0, //最上级的父级id
+        treeIdName: 'id', //id字段的名称
+        treePidName: 'pid', //pid字段的名称
+        treeDefaultClose: false, //是否默认折叠
+        treeLinkage: true, //父级展开时是否自动展开所有子级
+        elem: '#news_type',
+        url: '/admin/auth/rule',
+        toolbar: '#top_tool_bar',
+        method: 'post',
+        page: false,
+        cols: [[
+            {field:'id', title:'ID', unresize: true,hide:true},
+            {field: 'name', title: '名称'},
+            {field: 'icon', title: '图标'},
+            {field: 'sort_order', title: '排序'},
+            {field: 'status', title: '启用',templet: '#state_tpl'},
+            {fixed: 'right', title:'操作', toolbar: '#right_tool_bar', width:150}
+        ]],
+        done: function () {
+            layer.closeAll('loading');
+        }
+    });
+};
+
+renderTable();
+form.on('switch(state_tpl)', function(obj){
+    var json = JSON.parse(decodeURIComponent($(this).data('json')));
+    json = table.clearCacheKey(json);
+    $.ajax({
+        method:'post',
+        type:'json',
+        url:'/admin/auth/state',
+        data:{id:json.id,state:(parseInt(json.status) === 1?0:1)},
+        success:function (res) {
+            location.reload();
+            parent.reload();
+        }
+    })
+});
+{/block}

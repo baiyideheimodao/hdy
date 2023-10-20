@@ -1,0 +1,261 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{$location.title}</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <link rel="stylesheet" href="../../layuiadmin/layui/css/layui.css" media="all">
+  <link rel="stylesheet" href="../../layuiadmin/style/admin.css" media="all">
+  <link rel="stylesheet" href="../../layuiadmin/style/comm.css" media="all">
+  <script src="/layuiadmin/list.js"></script>
+  <style>
+    .none{ display: none !important;}
+  </style>
+</head>
+<body>
+
+  <div class="layui-fluid">
+    <div class="layui-card">
+
+      <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+
+        <div class="layui-form-item">
+
+          <form action="{:url('adminshop/proorder/')}" method="get" class="layui-form" style="float: left">
+            <div class="layui-inline">
+              <label class="layui-form-label">订单类型</label>
+              <div class="layui-input-inline">
+                <select lay-filter="state" name="state" class="status" lay-search="">
+                  <option value="" selected="">选择订单类型</option>
+                  <option value="0" {if $Request.get.state==0||$Request.get.state==''} selected{/if}>全部订单</option>
+                  <option value="1" {if $Request.get.state==1} selected{/if}>待付款</option>
+                  <option value="2" {if $Request.get.state==2} selected{/if}>已付款</option>
+                  <option value="3" {if $Request.get.state==3} selected{/if}>待收货</option>
+                  <option value="4" {if $Request.get.state==4} selected{/if}>已完成</option>
+                  <option value="5" {if $Request.get.state==5} selected{/if}>待售后</option>
+                </select>
+              </div>
+            </div>
+            <div class="layui-inline">
+              <button class="layui-btn" lay-submit>搜索</button>
+              <a class="layui-btn layui-btn-primary"  href="{:url('adminshop/proorder/')}">清除搜索</a>
+            </div>
+          </form>
+
+
+        </div>
+      </div>
+      <div class="layui-tab-content" style="">
+        <div class="layui-tab-item layui-show">
+          <form action="testdsdd.php" method="post" id="contentForm" name="contentForm" class="layui-form" onkeydown="if(event.keyCode==13) return false;">
+            <table class="layui-table">
+              <thead>
+              <tr>
+                <th><input type="checkbox" class="checkbox" lay-ignore="" id="checkall" title="全选" style="display: inline-block;"></th>
+                <th>ID</th>
+                <th>订单号</th>
+                <th>姓名</th>
+                <th>总价</th>
+                <th>商品数量</th>
+                <th>备注</th>
+                <th>创建时间</th>
+                <th>状态</th>
+                <th width="100">操作</th>
+              </tr>
+              </thead>
+              <tbody>
+              {volist name='list' id='list'  key="k"}
+              <tr>
+                <td>
+                  <input type="checkbox" name="checkbox" class="checkbox checkitem" lay-ignore="" name="list[]" value="{$list.id}" style="display: inline-block;">
+                </td>
+                <td>{$list.id}</td>
+                <td>{$list.ddh}</td>
+                <td>{$list.name}</td>
+                <td>{$list.total}</td>
+                <td>{$list.cpnum}</td>
+                <td>{$list.msg}</td>
+                <td>{$list.creatime|date='Y-m-d H:i'}</td>
+                <td>{if $list.state == 1 }待付款{elseif $list.state == 2 }已付款{elseif $list.state == 3 }待收货{elseif $list.state == 4 }已完成{elseif $list.state == 5 }待售后{else/}{/if}</td>
+                <td>
+                  <a href="javascript:;" style="background: #e88e27" onclick="edit({$list.id})" class="layui-btn layui-btn-sm"
+                  ><i class="layui-icon">&#xe716;</i>操作</a>
+                  <a href="javascript:;" style="background: #ff0000" onclick="del('orderlist',{$list.id})" class="layui-btn layui-btn-sm"
+                  ><i class="layui-icon">&#xe69c;</i>删除</a>
+                  <a href="javascript:;" onclick="openwin('/adminshop/{$location[\'name\']}/chakan/id/{$list.id}','查看商品列表','80%','80%')" class="layui-btn layui-btn-sm"
+                  ><i class="layui-icon">&#xe642;</i>查看商品列表</a>
+                  <a href="javascript:;" style="background: #e29626;" onclick="openwin('/adminshop/{$location[\'name\']}/address/id/{$list.addressid}','查看收回地址','80%','300px')" class="layui-btn layui-btn-sm"
+                  ><i class="layui-icon">&#xe611;</i>查看收回地址</a>
+                </td>
+              </tr>
+              {/volist}
+              </tbody>
+            </table>
+            <div class="layui-btn-group" style="padding: 0 0 0 0px">
+              <button type="submit" name="submit" onclick="return setDelAction();" style="width: 100px; height: 38px; line-height: 38px; " class="layui-btn layui-btn-sm">批量删除</button>
+            </div>
+            <script>
+              //全选删除
+              function setDelAction(){
+                var arr=[];
+                $("input[name='checkbox']:checkbox:checked").each(function(){
+                  arr.push($(this).val());
+                });
+                zu={};
+                zu.arr = arr;
+                zu.biao = 'orderlist';
+                if(arr.length==0){
+                  layer.msg('请选择删除的订单！');
+                  return false;
+                }else{
+                  layer.alert("确定删除吗？",function () {
+                    $.ajax({
+                      url:"/adminshop/common/delall/",
+                      type:'POST',
+                      data: zu,
+                      dataType:"json",
+                      success:function(data){
+                        if(data==1){
+                          layer.alert("删除成功",function () {
+                            window.location.reload(); //重载加载页面
+                          });
+                        }
+                        else{
+                          layer.alert("删除失败！",function () {
+                            parent.location.reload(); //重载加载页面
+
+                          });
+                        }
+                      },
+                      error:function(e){
+                        layer.alert("提交失败！");
+                        return false;
+                      }
+                    });
+                  });
+                }
+                return false;
+              }
+            </script>
+
+            <div class="page">
+              {$page|raw}
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+ <script src="../../layuiadmin/layui/layui.js"></script>
+ <script src="../../layuiadmin/static/js/jquery.min.js"></script>
+  <script>
+  layui.config({
+    base: '/layuiadmin/' //静态资源所在路径
+  }).extend({
+    index: 'lib/index' //主入口模块
+  }).use(['index', 'useradmin', 'table'], function(){
+    var $ = layui.$
+    ,form = layui.form
+    ,table = layui.table;
+
+    //监听搜索
+    form.on('submit(LAY-user-back-search)', function(data){
+      var field = data.field;
+
+      //执行重载
+      table.reload('LAY-user-back-manage', {
+        where: field
+      });
+    });
+
+
+    //勾选方式选择全部
+    $("#checkall").on("click", function () {
+      if($(this).prop("checked")){
+        $(".checkitem:enabled").prop("checked", true);
+      }else{
+        $(".checkitem").prop("checked", false);
+      }
+
+    })
+    //监听搜索
+    form.on('submit(LAY-app-contlist-search)', function(data){
+      var field = data.field;
+      console.log(field);
+      return false;
+      //执行重载
+      table.reload('LAY-app-content-list', {
+        where: field
+      });
+    });
+
+
+
+
+
+  });
+  </script>
+  <script>
+    function edit(id) {
+      //询问框
+      layer.open({
+        type: 2
+        ,title: '订单操作'
+        ,content: '/adminshop/proorder/edit/id/'+id
+        ,maxmin: true
+        ,area: ['600px', '700px']
+        ,btn: ['确定', '取消']
+        ,yes: function(index, layero){
+          //点击确认触发 iframe 内容中的按钮提交
+          var submit = layero.find('iframe').contents().find("#layuiadmin-app-form-submit");
+          submit.click();
+        }
+      });
+    }
+
+
+
+    //删除
+    function del(biao,id) {
+      //询问框
+      layer.confirm('是否确认删除该记录', {
+        title: '提示'
+        ,btn: ['确定','取消'] //按钮
+      }, function(){
+        $.ajax({
+          url:"/adminshop/common/del/id/"+id+'/biao/'+biao,
+          type:'POST',
+          dataType:"json",
+          success:function(data){
+            if(data==1){
+              layer.alert("删除成功",function () {
+                window.location.reload(); //重载加载页面
+              });
+            }
+            else{
+              layer.alert("删除失败！",function () {
+                parent.location.reload(); //重载加载页面
+
+              });
+            }
+          },
+          error:function(e){
+            layer.alert("提交失败！")
+          }
+        });
+      });
+    }
+
+
+
+
+
+  </script>
+</body>
+</html>
+

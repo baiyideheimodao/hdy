@@ -1,0 +1,115 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta content="webkit" name="renderer">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <link href="__style__/layui/css/layui.css" media="all" rel="stylesheet">
+    <link href="__style__/style/admin.css" media="all" rel="stylesheet">
+
+</head>
+<body>
+
+<div class="layui-form" id="layuiadmin-app-form-tags" lay-filter="layuiadmin-form-tags" style="padding: 20px 30px 20px 0; text-align: center;background-color:#fff">
+    <input name="id" type="hidden" value="{$info.id|default=''}">
+    <input name="image" value="{$info.image|default=''}" type="hidden">
+    <div class="layui-form-item">
+        <label class="layui-form-label">徽章图片</label>
+        <div class="layui-input-block">
+            <div class="layui-upload">
+                <div class="layui-upload-drag" id="task_images">
+                    {if condition="!isset($info) or $info.image eq ''"}
+                    <i class="layui-icon"></i>
+                    <p>点击上传缩率图，或将文件拖拽到此处</p>
+                    {else/}
+                    <img class="layui-upload-img" src="{$info['image']}" >
+                    {/if}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">名称</label>
+        <div class="layui-input-inline">
+            <input autocomplete="off" class="layui-input" lay-verify="required" name="name" placeholder="请输入名称" required type="text" value="{$info.name|default=''}">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">最小分值</label>
+        <div class="layui-input-inline">
+            <input autocomplete="off" class="layui-input" lay-verify="required" name="min_num" min="0" step="0.01" placeholder="请输入最小分值" type="number" value="{$info.min_num|default='0'}">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">最大分值</label>
+        <div class="layui-input-inline">
+            <input autocomplete="off" class="layui-input" lay-verify="required" name="max_num" min="0" step="0.01" placeholder="请输入最大分值" type="number" value="{$info.max_num|default='0'}">
+        </div>
+    </div>
+    <div class="layui-form-item layui-hide">
+        <input id="layuiadmin-app-form-submit" lay-filter="component-form-element" lay-submit type="button" value="确定">
+    </div>
+</div>
+
+<script src="__style__/layui/layui.js"></script>
+<script>
+    layui.config({
+                     base: '__style__/' //静态资源所在路径
+                 }).extend({  index: 'lib/index' //主入口模块
+                           }).use(['index', 'form','croppers'], function(){
+            var $ = layui.$
+            ,croppers = layui.croppers
+            ,form = layui.form ;
+        croppers.render({
+                            elem: '#task_images'
+                            ,saveW:400     //保存宽度
+                            ,saveH:400   //保存高度
+                            ,mark:1/1    //选取比例
+                            ,area:'900px'  //弹窗宽度
+                            , url: '/admin/question/upload_pic'
+                            , done: function (res) {
+                                //如果上传失败
+                                if (res.code > 0) {
+                                    return layer.msg('上传失败');
+                                }else{
+                                    $('#task_images').html('<img class="layui-upload-img" src="' + res.data.src + '" width="300">');
+                                    $('input[name=image]').val(res.data.src);
+                                }
+                            }
+                                            , error: function () {
+                                //演示失败状态，并实现重传
+                                $('#task_images').html('<i class="layui-icon"></i><p>点击上传，或将文件拖拽到此处</p>');
+                            }
+                        });
+
+        form.on('submit(component-form-element)', function(data) {
+            //layer.msg(JSON.stringify(data.field));
+            var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+            var d=data.field
+            $.ajax({
+               type: 'post',
+               url: "{$info.url|default='/admin/v2.brage/add'}",
+               data: d,
+               success: function(res) {
+                   layer.msg(res.msg);
+                   if(res.code === 1){
+                       setTimeout(function () {
+                           parent.location.reload(); //重载加载页面
+                           parent.layer.close(index); //再执行关闭
+                       },1000);
+                   }
+               },
+               error:function(e){
+                   layer.alert("提交失败！");
+                   return false;
+               }
+           });
+        });
+    })
+</script>
+</body>
+</html>

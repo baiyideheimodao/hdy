@@ -1,0 +1,37 @@
+{extend name="base" /}
+{block name="css"}
+<style>
+    .layui-table-cell{
+        height:auto !important;
+        white-space:normal;
+    }
+</style>
+{/block}
+{block name="table_tpl"}
+<script type="text/html" id="image_tpl">
+    <img src="{{ d.image }}" style="width:100px;height:auto">
+</script>
+{/block}
+{block name="search"}
+{/block}
+{block name="js"}
+{/block}
+{block name="table_js"}
+table.render({
+    elem: '#news_type'
+    ,url: '/admin/v2.brage/index'
+    ,toolbar: '#top_tool_bar'
+    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+    ,title: ''
+    ,method: 'post'
+    ,cols: [[
+        {field:'id', title:'ID', unresize: true, sort: true}
+        ,{field:'image', title:'图片', sort: true, templet: '#image_tpl'}
+        ,{field:'name', title:'名称'}
+        ,{field:'min_num', title:'最小分值'}
+        ,{field:'max_num', title:'最大分值'}
+        ,{field:'desc', title:'描述'}
+        ,{fixed: 'right', title:'操作', toolbar: '#right_tool_bar', width:150}
+    ]]
+});
+{/block}

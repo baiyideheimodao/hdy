@@ -1,0 +1,191 @@
+{extend name="base" /}
+{block name="table_tpl"}
+<script type="text/html" id="state_tpl">
+    <input type="checkbox" name="state" lay-skin="switch" lay-text="显示|隐藏" lay-filter="state_tpl"
+           value="{{ d.state }}" data-json="{{ encodeURIComponent(JSON.stringify(d)) }}" {{ d.state == 1 ? 'checked' : '' }}>
+</script>
+<script type="text/html" id="quest_type_tpl">
+    {{ d.type==1?'问答题':(d.type==2?'记录题':(d.type==3?'选择题':(d.type==4?'填空题':'判断题'))) }}
+</script>
+<script type="text/html" id="type_tpl">
+    {{ (d.type == 2 ? '<button class="layui-btn layui-btn-warm layui-btn-xs">记&nbsp;&nbsp;录&nbsp;&nbsp;题 </button>' : '<button class="layui-btn layui-btn-danger layui-btn-xs">非记录题</button>') }}
+</script>
+<script type="text/html" id="level_tpl">
+    {{ (d.level == 0 ? '<button class="layui-btn layui-btn-warm layui-btn-xs">无</button>' : d.level == 1 ? '<button class="layui-btn layui-btn-checked layui-btn-xs">尖子</button>' : d.level == 2 ? '<button class="layui-btn layui-btn-danger layui-btn-xs">培优</button>' : d.level == 3 ? '<button class="layui-btn layui-btn-green layui-btn-xs">基础</button>' : d.level == 4 ? '<button class="layui-btn layui-btn-warm layui-btn-xs">无</button>' : '<button class="layui-btn layui-btn-warm layui-btn-xs">无</button>')}}
+</script>
+<script type="text/html" id="admin_tpl">
+    {{ d.admin_id == 1 ? '系统' : d.name }}
+</script>
+{/block}
+{block name="search"}
+<div class="layui-inline">
+    <label class="layui-form-label">题型</label>
+    <div class="layui-input-block">
+        <select name="type"  lay-filter="type" class="layui-select">
+            <option value=""></option>
+            <option value="2">记录题</option>
+            <option value="1">非记录题</option>
+        </select>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">任务群</label>
+    <div class="layui-input-block">
+        <select name="course_index" class="layui-select" lay-filter="course_index">
+            <option value=""></option>
+            {volist name="course_index_list" id="item"}
+            <option value="{$item.id}">{$item.name}</option>
+            {if condition="isset($item.children)"}
+            {volist name="$item.children" id="vo"}
+            <option value="{$vo.id}"> ---- {$vo.name}</option>
+            {/volist}
+            {/if}
+            {/volist}
+        </select>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">科目</label>
+    <div class="layui-input-block">
+        <select name="subject_id" class="layui-select" lay-filter="subject_id">
+            <option value=""></option>
+            {volist name="subject" id="item"}
+            <option value="{$item.id}">{$item.name}</option>
+            {/volist}
+        </select>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">版本</label>
+    <div class="layui-input-block">
+        <select name="version_id" class="layui-select" lay-filter="version_id">
+            <option value=""></option>
+        </select>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">项目</label>
+    <div class="layui-input-block">
+        <select name="maker_id" class="layui-select" lay-filter="project_id">
+            <option value=""></option>
+        </select>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">名称</label>
+    <div class="layui-input-block">
+        <select name="data_log_id" class="layui-select"  lay-search>
+            <option value=""></option>
+            {volist name="data_log_name_list" id="item"}
+            <option value="{$item.id}">{$item.name}</option>
+            {/volist}
+        </select>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">题目名称</label>
+    <div class="layui-input-block">
+        <select name="question_id" class="layui-select" lay-filter="data_log_id" lay-search>
+            <option value=""></option>
+            {volist name="name_list" id="item"}
+            <option value="{$item.id}">{$item.name}</option>
+            {/volist}
+        </select>
+    </div>
+</div>
+<div class="layui-inline control-hide-2 control-show-1">
+    <label class="layui-form-label">页码</label>
+    <div class="layui-input-block">
+        <input type="number" min="1" name="page_num" placeholder="请输入" autocomplete="off" class="layui-input">
+    </div>
+</div>
+<div class="layui-inline control-hide-2 control-show-1">
+    <label class="layui-form-label">级别</label>
+    <div class="layui-input-block">
+        <select name="level" lay-filter="level">
+            <option value=""></option>
+            <option value="4">无</option>
+            <option value="1">尖子</option>
+            <option value="2">培优</option>
+            <option value="3">基础</option>
+        </select>
+    </div>
+</div>
+{/block}
+{block name="table_js"}
+table.render({
+    elem: '#news_type'
+    ,url: '/admin/question/fadeIndex'
+    ,toolbar: '#top_tool_bar'
+    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+    ,title: ''
+    ,method: 'post'
+    ,cols: [[
+        {field:'id', width:'80',title:'ID', fixed: 'left', unresize: true, sort: true}
+        ,{field:'type', width:'100',title:'题目类型', templet: '#quest_type_tpl'}
+        ,{field:'data_log_name',width:'30%', title:'名称'}
+        ,{field:'sub_name', title:'任务群',width:'150'}
+        ,{field:'subject_name',width:'100', title:'科目'}
+        ,{field:'level', title:'级别', templet: '#level_tpl'}
+        ,{field:'name',width:'30%', title:'题目名称'}
+        ,{field:'admin_name', title:'创建人', sort: true, templet: '#admin_tpl', unresize: true}
+        ,{field:'create_time',width:'110',title:'创建日期'}
+        ,{fixed: 'right', width:'100', title:'操作', toolbar: '#right_tool_bar'}
+        ]]
+    ,page: true
+});
+//监听操作
+form.on('switch(state_tpl)', function(obj){
+    var json = JSON.parse(decodeURIComponent($(this).data('json')));
+    json = table.clearCacheKey(json);
+    $.ajax({
+        method:'post',
+        type:'json',
+        url:'/admin/question/edit',
+        data:{id:json.id,state:(parseInt(json.state) === 1?0:1)},
+        success:function (res) {
+            layer.msg(res.msg);
+        }
+    })
+});
+$('.control-hide-1').hide();
+$('.control-hide-2').hide();
+form.on('select(type)',function(data){
+    $('.control-hide-1').hide();
+    $('.control-hide-2').hide();
+    if(data.value == 1){
+        $('.control-show-1').show();
+    }else if(data.value == 2){
+        $('.control-show-2').show();
+    }
+});
+var version = {:json_encode($version,JSON_UNESCAPED_UNICODE)};
+var maker = {:json_encode($maker,JSON_UNESCAPED_UNICODE)};
+form.on('select(subject_id)', function(data){
+    var html = `<option value=""></option>`;
+    $('select[name=maker_id]').html(html);
+    $('select[name=version_id]').html(html);
+    $('.maker-control').hide();
+    $.each(version,function (key,value) {
+        if(value.subject_id == data.value){
+            html += `<option value="`+value.id+`">`+value.name+`</option>`;
+        }
+    });
+    $('select[name=version_id]').html(html);
+    form.render('select');
+});
+form.on('select(version_id)', function(data){
+    var html = `<option value=""></option>`;
+    $('select[name=maker_id]').html(html);
+    $('.maker-control').hide();
+    var htmla = `<option value=""></option>`;
+    $.each(maker,function (key,value) {
+        if(value.version_id == data.value){
+            htmla += `<option value="`+value.id+`">`+value.name+`</option>`;
+        }
+        
+    });
+    $('select[name=maker_id]').html(htmla);
+    form.render('select');
+});
+{/block}

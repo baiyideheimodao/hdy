@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{:config('sys_data.back_web_name')}</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <link rel="icon" sizes="any" mask="" href="{:config('sys_data.back_web_icon')}">
+  <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+  <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+  <script src="/static/js/jquery1.12.3.min.js"></script>
+  <script src="/static/js/jquery.cookie.min.js"></script>
+  <script src="/static/layer/layer.js"></script>
+  <script>
+    var web_tokenName = $.cookie('tokenName');
+    var qx = $.cookie('qx');
+    if(!web_tokenName){
+      window.location.href="/admin/login"; //跳转登录页面
+    }
+  </script>
+</head>
+<body class="layui-layout-body">
+  <input type="hidden" id="cookie_name" value="">
+  <input type="hidden" id="cookie_qx" value="">
+  <input type="hidden" id="cookie_id" value="">
+  <input type="hidden" id="cookie_tokenName" value="">
+  <div id="LAY_app">
+    <div class="layui-layout layui-layout-admin">
+      <div class="layui-header">
+        <!-- 头部区域 -->
+        <ul class="layui-nav layui-layout-left">
+          <li class="layui-nav-item layadmin-flexible" lay-unselect>
+            <a href="javascript:;" layadmin-event="flexible" title="侧边伸缩">
+              <i class="layui-icon layui-icon-shrink-right" id="LAY_app_flexible"></i>
+            </a>
+          </li>
+          <li class="layui-nav-item" lay-unselect>
+            <a href="javascript:;" layadmin-event="refresh" lay-tips="刷新" >
+              <i class="layui-icon layui-icon-refresh-3" ></i>
+            </a>
+          </li>
+          <li class="layui-nav-item" lay-unselect>
+            <a href="/adminshop/" target="_blank" lay-tips="切换到商城" style="background: #3ab54a; padding: 0 10px;color: #ffffff;">
+              切换到商城
+            </a>
+          </li>
+        </ul>
+        <ul class="layui-nav layui-layout-right" lay-filter="layadmin-layout-right">
+          <li class="layui-nav-item time" style="color: #333;">
+
+          </li>
+          <li class="layui-nav-item layui-hide-xs" lay-unselect>
+            <a href="javascript:;" layadmin-event="theme">
+              <i class="layui-icon layui-icon-theme"></i>
+            </a>
+          </li>
+          <li class="layui-nav-item layui-hide-xs layui-hide" lay-unselect>
+            <a href="javascript:;" layadmin-event="note">
+              <i class="layui-icon layui-icon-note"></i>
+            </a>
+          </li>
+          <li class="layui-nav-item layui-hide-xs" lay-unselect>
+            <a href="javascript:;" layadmin-event="fullscreen">
+              <i class="layui-icon layui-icon-screen-full"></i>
+            </a>
+          </li>
+          <li class="layui-nav-item" lay-unselect>
+            <a href="javascript:;">
+              <cite id="web_name"></cite>
+            </a>
+            <dl class="layui-nav-child">
+              <dd><a lay-href="/admin/member/password">修改密码</a></dd>
+              <hr>
+              <dd style="text-align: center;"><a onclick="tuichu()">退出</a></dd>
+            </dl>
+          </li>
+        </ul>
+      </div>
+
+      <!-- 侧边菜单 -->
+      <div class="layui-side layui-side-menu">
+        <div class="layui-side-scroll">
+          <div class="layui-logo" lay-href="home/console.html">
+            <span>{:config('sys_data.back_web_name')}</span>
+          </div>
+
+          <ul class="layui-nav layui-nav-tree" lay-shrink="all" id="LAY-system-side-menu" lay-filter="layadmin-system-side-menu">
+            {volist name="menus" id="menu" key="k"}
+            <li data-name="{$menu.id}" class="layui-nav-item  layui-nav-itemed">
+              <a href="javascript:;" lay-tips="{$menu.name}" lay-direction="2">
+                <i class="{$menu.icon}"></i>
+                <cite>{$menu.name}</cite>
+              </a>
+              {if condition="isset($menu.children)"}
+              <dl class="layui-nav-child">
+                {volist name="$menu.children" id="vo"}
+                {if condition="isset($vo.children)"}
+                  <dd class="layui-nav-itemed nozuyuan">
+                    <a href="javascript:;">{$vo.name}</a>
+                    <dl class="layui-nav-child">
+                      {volist name="$vo.children" id="v"}
+                      <dd class=""><a lay-href="{$v.url}">{$v.name}</a></dd>
+                      {/volist}
+                    </dl>
+                  </dd>
+                {else/}
+                  <dd data-name="{$vo.id}" class="">
+                    <a lay-href="{$vo.url}">{$vo.name}</a>
+                  </dd>
+                {/if}
+                {/volist}
+              </dl>
+              {/if}
+            </li>
+            {/volist}
+          </ul>
+        </div>
+      </div>
+
+      <!-- 页面标签 -->
+      <div class="layadmin-pagetabs" id="LAY_app_tabs">
+        <div class="layui-icon layadmin-tabs-control layui-icon-prev" layadmin-event="leftPage"></div>
+        <div class="layui-icon layadmin-tabs-control layui-icon-next" layadmin-event="rightPage"></div>
+        <div class="layui-icon layadmin-tabs-control layui-icon-down">
+          <ul class="layui-nav layadmin-tabs-select" lay-filter="layadmin-pagetabs-nav">
+            <li class="layui-nav-item" lay-unselect>
+              <a href="javascript:;"></a>
+              <dl class="layui-nav-child layui-anim-fadein">
+                <dd layadmin-event="closeThisTabs"><a href="javascript:;">关闭当前标签页</a></dd>
+                <dd layadmin-event="closeOtherTabs"><a href="javascript:;">关闭其它标签页</a></dd>
+                <dd layadmin-event="closeAllTabs"><a href="javascript:;">关闭全部标签页</a></dd>
+              </dl>
+            </li>
+          </ul>
+        </div>
+        <div class="layui-tab" lay-unauto lay-allowClose="true" lay-filter="layadmin-layout-tabs">
+          <ul class="layui-tab-title" id="LAY_app_tabsheader">
+            {if condition="$menus[0]['url'] eq '#'"}
+              {if condition="count($menus[0]['children']) gt 0"}
+                {if condition="$menus[0]['children'][0]['url'] eq '#'"}
+                  {if condition="count($menus[0]['children'][0]['children']) gt 0"}
+                    <li lay-id="{$menus[0]['children'][0]['children'][0]['url']}" lay-attr="{$menus[0]['children'][0]['children'][0]['url']}" class="layui-this"><i class="{$menus[0]['children'][0]['icon']}"></i></li>
+                  {else/}
+                    <li lay-id="{$menus[0]['children'][0]['url']}" lay-attr="{$menus[0]['children'][0]['url']}" class="layui-this"><i class="{$menus[0]['icon']}"></i></li>
+                  {/if}
+              {else/}
+                <li lay-id="/admin/home/" lay-attr="/admin/home/" class="layui-this"><i class="layui-icon layui-icon-home"></i></li>
+              {/if}
+            {else/}
+              <li lay-id="{$menus[0]['url']}" lay-attr="{$menus[0]['url']}" class="layui-this"><i class="{$menus[0]['icon']}"></i></li>
+            {/if}
+          </ul>
+        </div>
+      </div>
+
+
+      <!-- 主体内容 -->
+      <div class="layui-body" id="LAY_app_body">
+        <div class="layadmin-tabsbody-item layui-show">
+          {if condition="$menus[0]['url'] eq '#'"}
+            {if condition="count($menus[0]['children']) gt 0"}
+              {if condition="$menus[0]['children'][0]['url'] eq '#'"}
+                  {if condition="count($menus[0]['children'][0]['children']) gt 0"}
+                    <iframe src="{$menus[0]['children'][0]['children'][0]['url']}" frameborder="0" class="layadmin-iframe" id="iframe"></iframe>
+                  {else/}
+                    <iframe src="{$menus[0]['children'][0]['url']}" frameborder="0" class="layadmin-iframe" id="iframe"></iframe>
+                  {/if}
+              {else/}
+                <iframe src="/admin/home/" frameborder="0" class="layadmin-iframe" id="iframe"></iframe>
+              {/if}
+          {/if}
+          {/if}
+          {else/}
+            <iframe src="{$menus[0]['url']}" frameborder="0" class="layadmin-iframe" id="iframe"></iframe>
+          {/if}
+          <!--<iframe src="/admin/home/" frameborder="0" class="layadmin-iframe" id="iframe"></iframe>-->
+        </div>
+      </div>
+
+      <!-- 辅助元素，一般用于移动设备下遮罩 -->
+      <div class="layadmin-body-shade" layadmin-event="shade"></div>
+    </div>
+  </div>
+  <script src="__style__/layui/layui.js"></script>
+
+  <script>
+    var web_name = $.cookie('name');
+    var web_qx = $.cookie('qx');
+    var web_id = $.cookie('id');
+    var web_tokenName = $.cookie('tokenName');
+    $("#web_name").html(web_name);
+    $("#cookie_name").val(web_name);
+    $("#cookie_qx").val(web_qx);
+    $("#cookie_id").val(web_id);
+    $("#cookie_tokenName").val(web_tokenName);
+    function tuichu(){
+      layer.alert("确定退出登录吗？",function () {
+        $.removeCookie('name',{ path: '/'});
+        $.removeCookie('qx',{ path: '/'});
+        $.removeCookie('id',{ path: '/'});
+        $.removeCookie('tokenName',{ path: '/'});
+        window.location.href="/admin/login"; //跳转登录页面
+      })
+    }
+    function ymd() {
+      var dd= new Date();
+      var y = dd.getFullYear();
+      var m = dd.getMonth()+1;//获取当前月份的日期
+      var d = dd.getDate();
+      return y+"年"+m+"月"+d+"日";
+    }
+    var index = setInterval(function () {
+      var mytime=(new Date()) .toLocaleTimeString(); //获取当前时间
+      $('.time').html("现在是：" + ymd() + " " + mytime);
+    },1000);
+    function zuzhi() {
+      //操作层
+      layer.open({
+        type: 2
+        , title: '选择组织架构'
+        , content: '/admin/dictionary/listorganizational'
+        , maxmin: true
+        , area: ['550px', '600px']
+        , btn: ['确定', '取消']
+        , yes: function (index, layero) {
+          //点击确认触发 iframe 内容中的按钮提交
+          var submit = layero.find('iframe').contents().find("#layuiadmin-app-form-submit");
+          submit.click();
+        }
+      });
+    }
+  </script>
+  <script>
+  layui.config({
+    base: '__style__/' //静态资源所在路径
+  }).extend({
+    index: 'lib/index' //主入口模块
+  }).use('index');
+
+  //权限分配
+
+  </script>
+
+</body>
+</html>
+
+

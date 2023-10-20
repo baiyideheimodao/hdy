@@ -1,0 +1,205 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{if isset($pageName) and !empty($pageName)}{$pageName}{/if}</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/style/message/msg.css" media="all">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+    <link rel="stylesheet" href="__style__/dtree/dtree.css?t=142568957" media="all">
+    <link rel="stylesheet" href="__style__/dtree/font/dtreefont.css?t=142568957" media="all">
+    {block name="css"}{/block}
+</head>
+<body>
+<div class="layui-fluid">
+    <div class="layui-card">
+        {if isset($pageName) and !empty($pageName)}
+        <div class="layui-card-header layui-elem-quote">当前位置：<span class="line-text">{$pageName}</span></div>
+        {/if}
+        <div class="layui-card-body">
+            <script type="text/html" id="top_tool_bar">
+                <div class="layui-btn-container">
+                    {volist name="permBtns.topBtns" id="item"}
+                    <button class="layui-btn layui-btn-sm {$item.btn_style}" title="{$item.name}" lay-event="{$item.perm}-{$item.id}">{if !empty($item.icon)}<i class="layui-icon {$item.icon}"></i>{/if}{$item.name}</button>
+                    {/volist}
+                    {block name="top_btns_define"}{/block}
+                </div>
+            </script>
+            <script type="text/html" id="right_tool_bar">
+                {volist name="permBtns.rightBtns" id="item"}
+                <a class="layui-btn layui-btn-xs {$item.btn_style}" title="{$item.name}" lay-event="{$item.perm}-{$item.id}">{if !empty($item.icon)}<i class="layui-icon {$item.icon}"></i>{/if}{$item.name}</a>
+                {/volist}
+            </script>
+            {block name="table_tpl"}{/block}
+            {if !empty($permBtns.searchBtns)}
+            <form class="layui-form layui-center" id="search_form">
+                <div class="layui-form-item">
+                    {block name="search"}{/block}
+                    <div class="layui-inline">
+                        <button class="layui-btn layuiadmin-btn-order" lay-submit lay-filter="table-search" id="table-search">搜索</button>
+                        <button class="layui-btn layui-btn-primary" lay-submit lay-filter="table-search-empty">清除搜索</button>
+                    </div>
+                </div>
+            </form>
+            {/if}
+            {block name="default_head"}{/block}
+            <table id="news_type" lay-filter="news_type"></table>
+        </div>
+    </div>
+</div>
+
+<script src="__style__/layui/layui.js"></script>
+{block name="js"}{/block}
+<script>
+    var table;
+    var form;
+    var admin;
+    var laydate;
+    var dtree;
+    var employeepicker;
+    var $;
+    function dealChecked(data){
+        var list = [];
+        for (let i = 0; i < data.length; i++) {
+            list.push(data[i].id);
+        }
+        return list.join(',');
+    }
+    function doAction(index,layero){
+        var submit = layero.find('iframe').contents().find("#layuiadmin-app-form-submit");
+        submit.click();
+    }
+    layui.config({
+                     base: '__style__/' //静态资源所在路径
+                 }).extend({  index: 'lib/index' //主入口模块
+                             ,dtree: 'dtree'
+                            ,employeepicker: 'employeepicker'
+                           }).use(['index', 'contlist','admin', 'table','laydate','dtree','employeepicker','layer'], function() {
+        table = layui.table;
+        form  = layui.form;
+        dtree  = layui.dtree;
+        employeepicker  = layui.employeepicker;
+        $     = layui.$;
+        admin = layui.admin;
+        laydate = layui.laydate;
+        layer = layui.layer;
+
+    {block name="table_js"}{/block}
+
+    //监听行工具事件
+    table.on('tool(news_type)', function(obj){
+        var data = obj.data;
+        switch (obj.event) {
+            {volist name="permBtns.rightBtns" id="item"}
+    case '{$item.perm}-{$item.id}':
+        {if $item.is_del_btn eq 1}
+        layer.confirm('真的{$item.name}行么', function(index){
+            $.ajax({
+                       method:'post',
+                       type:'json',
+                       data:{},
+                       url:'{$item.url}?id='+data.id,
+                       success:function (res) {
+                           layer.msg(res.msg);
+                           obj.del();
+                           layer.close(index);
+                       }
+                   })
+        });
+        {else/}
+            var edit_index = layer.open({
+                                            type: 2
+                                            ,title: '{$item.name}'
+                                            ,content: '{$item.url}?id='+data.id
+                                             ,area: ['450px', '270px']
+                                            ,anim:5
+            {if $item.view eq 0}
+            ,btn: ['确定', '取消']
+            {/if}
+            ,maxmin:true
+                    ,yes: function(index, layero){
+                doAction(index, layero);
+            }
+        });
+             layer.full(edit_index);
+            {/if}
+            break;
+            {/volist}
+            {block name="right_bar_define"}{/block}
+            default:
+            break;
+        }
+        });
+        table.on('toolbar(news_type)', function(obj){
+            var checkStatus = table.checkStatus(obj.config.id);
+            switch(obj.event){
+                {volist name="permBtns.topBtns" id="item"}
+            case '{$item.perm}-{$item.id}':
+            var ids = '';
+            {if $item.is_batch_btn eq 1}
+            ids = dealChecked(checkStatus.data);
+            if(ids.length == 0){
+                layer.msg('请选择至少勾选一项进行{$item.name}');
+                return false;
+            }
+            {/if}
+            {if $item.is_del_btn eq 1}
+            layer.confirm('真的删除行么', function(index){
+                $.ajax({
+                           method:'post',
+                           type:'json',
+                           data:{},
+                           url:'{$item.url}?ids='+ids,
+                           success:function (res) {
+                               layer.msg(res.msg);
+                               location.reload();
+                               layer.close(index);
+                           }
+                       })
+            });
+            {else/}
+            var add_index = layer.open({
+                                           type: 2
+                                           ,title: '{$item.name}'
+                                           ,content: '{$item.url}?ids='+ids
+                                            ,area: ['450px', '270px']
+                                           ,anim:5
+            {if $item.view eq 0}
+            ,btn: ['确定', '取消']
+            {/if}
+            ,maxmin:true
+                    ,yes: function(index, layero){
+                doAction(index, layero);
+            }
+        });
+        layer.full(add_index);
+        {/if}
+        break;
+        {/volist}
+            {block name="top_bar_define"}{/block}
+        }
+    });
+    form.on('submit(table-search)', function(data){
+        var field = data.field;
+        //执行重载
+        table.reload('news_type', {
+                page:{curr:1},
+            where: field
+        });
+        return false;
+    });
+    //清空搜索条件
+    form.on('submit(table-search-empty)', function(data){
+            {block name="other_reset"}{/block}
+        $('#search_form')[0].reset();
+            $('#table-search').click();
+            return false;
+    });
+});
+</script>
+</body>
+</html>

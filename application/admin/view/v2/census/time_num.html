@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>课时数 - 柱状图</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+    <script src="__JS__/jquery1.42.min.js"></script>
+    <script src="__JS__/echarts.js"></script>
+    <style>
+        #main {
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">课时数</div>
+                <div class="layui-card-body">
+                    <form class="layui-form layui-center" id="search_form">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label class="layui-form-label">日期范围</label>
+                                <div class="layui-inline">
+                                    <input type="text" name="range_date" value="{$rangeDate}" class="layui-input" id="test16" placeholder="开始 - 结束">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <button class="layui-btn layuiadmin-btn-order" lay-submit lay-filter="table-search" id="table-search">搜索</button>
+                                <button class="layui-btn layui-btn-primary" lay-submit lay-filter="table-search-empty">清除搜索</button>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="main">
+                        <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="__style__/layui/layui.js"></script>
+<script type="text/javascript">
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('main'));
+    function showBar() {
+        $.get('/admin/v2.census/timeNums?range_date='+$('#test16').val(),function (data) {
+            // data 的结构:
+            // {
+            //     categories: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子"],
+            //     values: [5, 20, 36, 10, 10, 20]
+            // }
+            myChart.setOption({
+                                  title: {
+                                      text: data.title
+                                  },
+                                  tooltip: {},
+                                  legend: {},
+                                  xAxis: {
+                                      data: data.categories
+                                  },
+                                  yAxis: {},
+                                  series: [
+                                      {
+                                          name: '课时数',
+                                          type: 'bar',
+                                          barGap: '20%',
+                                          color: '#009688',
+                                          barCategoryGap: '40%',
+                                          data: data.values
+                                      }
+                                  ]
+                              });
+        });
+    }
+    showBar();
+    window.onresize = function() {
+        myChart.resize();
+    };
+</script>
+<script>
+    layui.use(['laydate','form'], function(){
+        var laydate = layui.laydate;
+        var form = layui.form;
+        laydate.render({
+                           elem: '#test16'
+                           ,type: 'datetime'
+                            ,value:'{$rangeDate}'
+                           ,range: '~'
+                           ,format: 'yyyy-M-d'
+                       });
+        form.on('submit(table-search)', function(data){
+            showBar();
+            return false;
+        });
+        //清空搜索条件
+        form.on('submit(table-search-empty)', function(data){
+            $('#search_form')[0].reset();
+            $('#table-search').click();
+            return false;
+        });
+    });
+</script>
+</body>
+</html>
+
+

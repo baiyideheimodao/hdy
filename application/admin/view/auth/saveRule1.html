@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>权限管理</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+</head>
+<body class="layui-layout-body">
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space20">
+        <div class="layui-col-md3">
+        </div>
+        <div class="layui-col-md6">
+            <div class="layui-card">
+                <div class="layui-card-header">节点更新</div>
+                <div class="layui-card-body">
+                    <form class="layui-form" action="" lay-filter="component-form-element">
+                        <input type="hidden" name="id" value="{$data.id|default=''}">
+                        <input type="hidden" name="pid" value="{$data.pid|default=$Request.param.id}">
+                        <div class="layui-row layui-col-space10 layui-form-item">
+                            <div class="layui-col-lg6">
+                                <label class="layui-form-label">名称：</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="name" value="{$data.name|default=''}" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-row layui-col-space10 layui-form-item">
+                            <div class="layui-col-lg6">
+                                <label class="layui-form-label">控制器：</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="url" value="{$data.url|default=''}" autocomplete="off" placeholder="admin/index/index" class="layui-input">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-row layui-col-space10 layui-form-item">
+                            <div class="layui-col-lg6">
+                                <label class="layui-form-label">图标：</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="icon" value="{$data.icon|default=''}" autocomplete="off" placeholder="fa fa-image" class="layui-input" style="display: inline-block; width:calc(100% - 60px);">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-row layui-col-space10 layui-form-item">
+                            <div class="layui-col-lg6">
+                                <label class="layui-form-label">菜单显示：</label>
+                                <div class="layui-input-block">
+                                    <input type="radio" name="type" value="nav" title="是" {if empty($data) or isset($data) and $data.type eq 'nav'}checked="checked"{/if}>
+                                    <input type="radio" name="type" value="auth" title="否" {if isset($data) and $data.type eq 'auth'}checked="checked"{/if}>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-row layui-col-space10 layui-form-item">
+                            <div class="layui-col-lg6">
+                                <label class="layui-form-label">排序：</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="sort_order" value="{$data.sort_order|default='0'}" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-row layui-col-space10 layui-form-item">
+                            <div class="layui-col-lg6">
+                                <label class="layui-form-label"><span style="color:red;">*</span>状态</label>
+                                <div class="layui-input-block ">
+                                    <select name="status" lay-filter="status">
+                                        <option value="1" if empty($data) or isset($data) and $data.status eq 1}selected{/if}>正常</option>
+                                        <option value="0" if empty($data) or isset($data) and $data.status eq 0}selected{/if}>禁用</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button class="layui-btn" lay-submit lay-filter="component-form-element">立即提交</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md6">
+        </div>
+    </div>
+</div>
+<script src="__style__/layui/layui.js"></script>
+<script>
+    var action = '{$action}';
+    layui.config({
+        base: '../../../layuiadmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'form'], function() {
+        var $ = layui.$,
+            admin = layui.admin,
+            element = layui.element,
+            setter = layui.setter,
+            form = layui.form;
+        var user=localStorage.getItem("session");
+        form.render(null, 'component-form-element');
+        element.render('breadcrumb', 'breadcrumb');
+
+        form.on('submit(component-form-element)', function(data) {
+            //layer.msg(JSON.stringify(data.field));
+            var d=data.field
+            $.ajax({
+                type: 'post',
+                url: '/admin/auth/'+ action,
+                data: d,
+                success: function(res) {
+                    if (res.code == 200) {
+                        layer.msg('提交成功', {
+                            offset: '15px',
+                            icon: 1,
+                            time: 1000
+                        },function(){
+                            parent.location.reload(); // 父页面刷新
+                        });
+                    } else {
+                        if(layer.msg){
+                            layer.msg(res.msg, {
+                                offset: '15px',
+                                icon: 2
+                            });
+                        }else{
+                            parent.location.reload();
+                        }
+                    }
+                }
+            });
+            return false;
+        });
+        // 添加图标
+        $('.ajax-icon').on('click', function () {
+            var url = $(this).attr('href');
+            var index = layer.open({
+                title: '选择图标',
+                type: 2,
+                area: ['100%', '100%'],
+                content: url
+            });
+            return false;
+        });
+    });
+</script>
+</body>
+
+</html>

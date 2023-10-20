@@ -1,0 +1,302 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__style__/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="__style__/style/admin.css" media="all">
+
+    <style>
+        .layui-upload-img{width: 50%; height: auto;}
+    </style>
+</head>
+<body>
+
+<div class="layui-form" lay-filter="layuiadmin-form-tags" id="layuiadmin-app-form-tags" style="padding: 20px 30px 20px 0;background-color:#fff">
+    <input name="id" type="hidden" value="{$info.id|default=''}">
+    <input name="update_sub" type="hidden" value="0">
+    <div class="layui-form-item">
+        <label class="layui-form-label">封面</label>
+        <div class="layui-input-block">
+            <div class="layui-upload">
+                <div class="layui-upload-drag" id="ques_images">
+                    {if condition="!isset($info) or $info.image eq ''"}
+                    <i class="layui-icon"></i>
+                    <p>点击上传，或将文件拖拽到此处</p>
+                    {else/}
+                    <img class="layui-upload-img" src="{$info['image']}">
+                    {/if}
+                </div>
+            </div>
+        </div>
+    </div>
+    <input name="image" type="hidden" id="image" value="{$info.image|default=''}">
+    <div class="layui-form-item">
+        <label class="layui-form-label">标题</label>
+        <div class="layui-input-block">
+            <input type="text" name="title" lay-verify="required" value="{$info.title|default=''}" maxlength="150" placeholder="请输入标题" autocomplete="off" class="layui-input" required>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">描述</label>
+        <div class="layui-input-block">
+            <textarea name="desc" maxlength="150" placeholder="请输入描述" autocomplete="off" class="layui-textarea">{$info.desc|default=''}</textarea>
+        </div>
+    </div>
+    {if condition="check_admin_area()"}
+    <div class="layui-form-item">
+        <label class="layui-form-label">显示所有</label>
+        <div class="layui-input-block">
+            <input type="hidden" name="show_all" value="0">
+            <input type="checkbox" name="show_all" lay-skin="switch" lay-filter="show_all" lay-text="显示|不显示" {if condition="isset($info) and $info.show_all eq 1"}checked{/if}/>
+        </div>
+    </div>
+    <div class="layui-form-item area_block">
+        <label class="layui-form-label">筛选区域</label>
+        <div class="layui-input-inline">
+            <select id="province" lay-filter="province" lay-search="" lay-verify="required" name="province_id">
+                <option value="">请选择省</option>
+                {volist name="$area.province" id="v"}
+                <option value="{$v.id}" >{$v.name}</option>
+                {/volist}
+            </select>
+        </div>
+
+        <div class="layui-input-inline">
+            <select id="city" lay-filter="city" lay-search="" lay-verify="required" name="city_id">
+                {if $area.city == []}
+                <option value="">请选择市</option>
+                {else/}
+                <option value="">请选择市</option>
+                {volist name="$area.city" id="v"}
+                <option value="{$v.id}" >{$v.name}</option>
+                {/volist}
+                {/if}
+            </select>
+        </div>
+    </div>
+    <div class='layui-form-item area_block'>
+        <label class="layui-form-label">县区列表</label>
+        <div class="layui-input-block classes_id">
+            {volist name="$area.area" id="item"}
+            <input type="checkbox" name="area[]"  lay-skin="primary" title="{$item.name}" value="{$item.id}" {if condition="isset($info) and in_array($item.id,explode(',',$info.area_ids))"}checked{/if}>
+            {/volist}
+        </div>
+    </div>
+    {/if}
+    <input name="video_url" type="hidden" id="video_url" value="{$info.video_url|default=''}">
+    <div class="layui-form-item">
+        <label class="layui-form-label">视频</label>
+        <div class="layui-input-block">
+            <div class="layui-card">
+                <div class="layui-card-header">视频格式：mp4、3gp、m3u8。</div>
+                <div class="layui-card-body">
+                    <video id="video_show" class="{if condition='!isset($info)'}layui-hide{/if}" style="width:40%;height:auto" src="{$info.video_url|default=''}" controls="controls"></video>
+                    <br>
+                    <button type="button" class="layui-btn" id="test-upload-type3"><i class="layui-icon"></i>上传视频</button>
+                    <div class="layui-inline layui-word-aux">
+                        最大上传20M
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">排序</label>
+        <div class="layui-input-block">
+            <input type="number" name="sort" value="{$info.sort|default='0'}" lay-verify="required" placeholder="请输入排序" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">是否置顶</label>
+        <div class="layui-input-block">
+            <input type="hidden" name="is_top" value="0">
+            <input type="checkbox" name="is_top" lay-skin="switch" lay-text="是|否" {if condition="isset($info) and $info.is_top eq 1"}checked{/if}/>
+        </div>
+    </div>
+    <div class="layui-form-item layui-hide">
+        <input type="button" lay-submit lay-filter="layuiadmin-app-form-submit" id="layuiadmin-app-form-submit" value="确定">
+    </div>
+</div>
+
+<script src="__style__/layui/layui.js"></script>
+<script>
+    layui.config({
+                     base: '__style__/' //静态资源所在路径
+                 }).extend({  index: 'lib/index' //主入口模块
+                           }).use(['index', 'form','upload'], function(){
+        var $ = layui.$
+            , upload = layui.upload
+            , form = layui.form;
+        var show_all = "{if condition='isset($info) and $info.show_all eq 1'}1{else/}0{/if}";
+        if(parseInt(show_all) === 1){
+            $('.area_block').hide();
+        }else{
+            $('.area_block').show();
+        }
+
+        var provinceId = ""; // 省id
+        var cityId = ""; // 市id
+        //监听省下拉框
+        form.on('select(province)', function (dataObj) {
+            //移除城市下拉框所有选项
+            $("#city").empty();
+            var cityHtml = '<option value="">请选择市</option>';
+            $("#city").html(cityHtml);
+            var areaHtml = '<option value="">请选择县/区</option>';
+            $("#area").html(areaHtml);
+            // 省id
+            provinceId = $('select[name=province_id]').val();
+            //异步加载下拉框数据
+            $.post("/admin/school/addressList", {"id": provinceId}, function (res) {
+                // var res = JSON.parse(res);
+                if (res.code == 100) {
+                    var $html = "";
+                    if (res.data != null) {
+                        $.each(res.data, function (index, item) {
+                            $html += "<option value='" + item.id + "'>" + item.name + "</option>";
+                        });
+                        $("#city").append($html);
+                        // append后必须从新渲染
+                        form.render('select');
+                    }
+                } else {
+                    layer.msg(res.msg)
+                }
+            }, 'json');
+
+        });
+
+        // 监听市下拉框
+        form.on('select(city)', function (dataObj) {
+            // 移除县区下拉框所有选项
+            $("#area").empty();
+            var html = '<option value="">请选择县/区</option>';
+            $("#area").html(html);
+            // 市id
+            cityId = $('select[name=city_id]').val();
+            // 异步加载下拉框数据
+            $.post("/admin/school/addressList", {"id": cityId}, function (res) {
+                if (res.code == 100) {
+                    var htmla = ``;
+                    if (res.data != null) {
+                        $.each(res.data,function (index, value) {
+                            htmla += `<input type="checkbox" name="area[]"  lay-skin="primary" title="`+value.name+`" value=`+value.id+`>`;
+                        });
+                        $('.classes_id').html(htmla);
+                        //append后必须从新渲染
+                        form.render('checkbox');
+                    }
+                } else {
+                    layer.msg(res.msg)
+                }
+            }, 'json');
+
+        });
+        /* 监听指定开关 */
+        form.on('switch(show_all)', function(data){
+            if(this.checked){
+                $('.area_block').hide();
+            }else{
+                $('.area_block').show();
+            }
+        });
+        upload.render({
+            elem: '#ques_images'
+            , accept: 'image'
+            , url: '/admin/question/upload_pic'
+            , before: function (obj) {
+                //预读本地文件示例，不支持ie8
+                obj.preview(function (index, file, result) {
+                    var file_type = file.type;
+                    var type = file_type.split('/')[0];
+                    if (['image'].indexOf(type) === -1) {
+                        layer.alert('上传文件格式错误,请重新上传');
+                        return false;
+                    }
+                    $('#ques_images').html('<img class="layui-upload-img" src="' + result + '">');
+                });
+            }
+            , done: function (res) {
+                //如果上传失败
+                if (res.code > 0) {
+                    return layer.msg('上传失败');
+                }
+                $('input[name=image]').val(res.data.src);
+            }
+            , error: function () {
+                //演示失败状态，并实现重传
+                $('#ques_images').html('<i class="layui-icon"></i><p>点击上传，或将文件拖拽到此处</p>');
+            }
+        });
+        var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+        //拖拽上传
+        upload.render({
+                          elem: '#test-upload-type3'
+                          ,url: "{$info.url|default='/admin/video/add'}"
+                          ,accept: 'video' //视频
+                          ,auto: false
+                          ,multiple: false
+                            ,exts:'mp4|3gp|m3u8'
+                          ,size: 20480 //限制文件大小，单位 KB
+                          ,bindAction: '#layuiadmin-app-form-submit'
+                          ,choose:function (obj) {
+                            obj.preview(function (index, file, result) {
+                                $('#video_show').attr('src',result);
+                                $('#video_show').removeClass('layui-hide');
+                            });
+                          }
+                          ,before: function(obj){
+                                this.data = {
+                                    'id':$('input[name=id]').val(),
+                                    'title' : $('input[name=title]').val(),
+                                    'desc' : $('textarea[name=desc]').val(),
+                                    'sort' : $('input[name=sort]').val(),
+                                };
+                                $('input[name=update_sub]').val(1)
+                          }
+                          ,done: function(res){
+                                layer.msg(res.msg);
+                                if(res.code == 1){
+                                    setTimeout(function () {
+                                        parent.location.reload(); //重载加载页面
+                                        parent.layer.close(index); //再执行关闭
+                                    },1000);
+                                }
+                            }
+                      });
+        form.on('submit(layuiadmin-app-form-submit)', function(data){
+            if($('input[name=update_sub]').val() == 1){
+                return false;
+            }
+            var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+            $.ajax({
+                       url: "{$info.url|default='/admin/video/add'}",
+                       type:'post',
+                       data: data.field,
+                       dataType:"json",
+                       success:function(data){
+                           layer.msg(data.msg)
+                           if(data.code == 1){
+                               setTimeout(function () {
+                                   parent.location.reload(); //重载加载页面
+                                   parent.layer.close(index); //再执行关闭
+                               },1000);
+                           }
+                       },
+                       error:function(e){
+                           layer.alert("提交失败！");
+                           return false;
+                       }
+                   });
+
+        });
+    })
+</script>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{$location.title}</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="/layuiadmin/layui/css/layui.css" media="all">
+    <link rel="stylesheet" type="text/css" media="all" href="/layuiadmin/static/css/ztreestyle.css"/>
+    <link rel="stylesheet" type="text/css" media="all" href="/layuiadmin/static/css/treeselect.css"/>
+    <style>
+        .treeSelect input{
+            cursor: pointer;
+        }
+        .layui-form-item .layui-input-inline {
+            width: calc(100% - 120px);
+        }
+
+        .layui-upload-img {
+            width: 90px;
+            height: 90px;
+            margin: 0;
+        }
+
+        .treeSelect input{
+            color: #666666;
+        }
+    </style>
+
+</head>
+<body>
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-form" lay-filter="layuiadmin-app-form-list" id="layuiadmin-app-form-list"
+             style="padding: 20px 30px 0 0;">
+            <input value="{$pid}" id="typeid" name="pid" type="hidden">
+            <div class="layui-form-item">
+                <label class="layui-form-label">产品分类名称</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="name" placeholder="产品分类名称" autocomplete="off" class="layui-input"
+                           value="">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">上级栏目</label>
+                <div class="layui-input-inline">
+                    <div class="treeSelect" ></div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">缩率图</label>
+                <div class="layui-input-inline">
+                    <div class="imgBtn" style="margin-bottom:5px;">
+                        <button class="layui-btn layui-btn-blue" id="btn_upload"><i class="layui-icon">&#xe640;</i>图片上传
+                        </button>
+                    </div>
+                    <div class="imgCon">
+                        <input type="text" name="icon" id="image" disabled placeholder="请输入缩率图" autocomplete="off" class="layui-input layui-hide" value="">
+                        <img src=""  onerror="this.src='/static/nopic.png'" id="test-upload-normal" style="width: 100px;height: 100px;">
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">是否下架</label>
+                <div class="layui-input-inline">
+                    <input type="radio" class="layui-input" name="hide"  value="0"
+                    title="隐藏">
+                    <input type="radio" class="layui-input" name="hide"  checked value="1"
+                    title="显示">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">是否设置推荐</label>
+                <div class="layui-input-inline">
+                    <input type="radio" class="layui-input" name="recommend"  checked value="0"
+                    title="普通">
+                    <input type="radio" class="layui-input" name="recommend"  value="1"
+                    title="推荐">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">排序</label>
+                <div class="layui-input-inline">
+                    <input type="number" name="sort" placeholder="请输入排序" autocomplete="off" class="layui-input"
+                           value="255">
+                </div>
+            </div>
+
+
+            <div class="layui-form-item layui-hide">
+                <input type="button" lay-submit lay-filter="layuiadmin-app-form-submit" id="layuiadmin-app-form-submit"
+                       value="确认添加">
+                <input type="button" lay-submit lay-filter="layuiadmin-app-form-edit" id="layuiadmin-app-form-edit"
+                       value="确认编辑">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/layuiadmin/layui/layui.js"></script>
+<script src="/layuiadmin/static/js/jquery.min.js"></script>
+<script src="/layuiadmin/static/js/jquery.ztree.all.min.js"></script>
+<!--treeSelect-->
+<script src="/layuiadmin/static/js/treeselect1.js"></script>
+<script>
+    $(function () {
+        $.ajax({
+            url: '{:url('menuSortdata')}',
+            type: 'get',
+            data: {
+                'type':'sortEdit'
+            },
+            dataType: "json",
+            success: function (data) {
+                $(".treeSelect").treeSelect({
+                    data: data.data,
+                    inputId: "sortname",
+                    keyname: "{$pid||product_name}"
+                })
+            },
+            error: function (e) {
+                layer.alert("提交失败！");
+                return false;
+            }
+        });
+    });
+</script>
+
+<script>
+    layui.config({
+        base: '/layuiadmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'form', 'upload', 'laydate'], function () {
+        var $ = layui.$
+
+            , upload = layui.upload
+            , laydate = layui.laydate
+            , form = layui.form;
+
+
+        //日期时间选择器
+        laydate.render({
+            elem: '#test1'
+            , type: 'datetime'
+        });
+
+        laydate.render({
+            elem: '#test2'
+            , type: 'datetime'
+        });
+
+        //普通图片上传
+        var uploadInst = upload.render({
+            elem: '#btn_upload'
+            , url: '{:url("adminshop/Common/upload")}'
+            , done: function (res) {
+                $('#test-upload-normal').attr('src', res.filename);
+                $('#image').val(res.filename);
+            }
+            , error: function (res) {
+                console.log(res);
+                //请求异常回调
+            }
+        });
+
+        //多图上传
+        var num = 0; //便于接收返回值
+        var img = []; //便于存储返回值
+        upload.render({
+            elem: '#btn-img',
+            url: "/adminshop/Common/dtupload",
+            size: 500,
+            exts: 'jpg|png|jpeg',
+            multiple: true,
+            before: function (obj) {
+                layer.msg('图片上传中...', {
+                    icon: 16,
+                    shade: 0.01,
+                    time: 0
+                })
+            },
+            done: function (res) {
+                layer.close(layer.msg());//关闭上传提示窗口
+                if (res.status == 0) {
+                    return layer.msg(res.message);
+                }
+                //$('#slide-pc-priview').append('<input type="hidden" name="pc_src[]" value="' + res.filepath + '" />');
+                $('#slide-pc-priview').append('<li class="item_img"><div class="operate"><i  class="close layui-icon"><img style="height: 32px;width: 32px;" src="/layuiadmin/static/images/del.png"></i></div><img src="' + res.filepath + '" class="img" ><input type="hidden" name="pc_src[]" value="' + res.filepath + '" /></li>');
+            }
+        });
+        //点击多图上传的X,删除当前的图片
+        $("body").on("click", ".close", function () {
+            $(this).closest("li").remove();
+        });
+        //多图上传点击<>左右移动图片
+        $("body").on("click", ".pic-more ul li .toleft", function () {
+            var li_index = $(this).closest("li").index();
+            if (li_index >= 1) {
+                $(this).closest("li").insertBefore($(this).closest("ul").find("li").eq(Number(li_index) - 1));
+            }
+        });
+        $("body").on("click", ".pic-more ul li .toright", function () {
+            var li_index = $(this).closest("li").index();
+            $(this).closest("li").insertAfter($(this).closest("ul").find("li").eq(Number(li_index) + 1));
+        });
+
+        //监听提交
+        form.on('submit(layuiadmin-app-form-submit)', function (data) {
+            var field = data.field; //获取提交的字段
+            if(field.name==''){
+                layer.msg("请输入分类名称！");
+                return false;
+            }
+            if(field.icon==''){
+                layer.msg("请上传栏目缩率图！");
+                return false;
+            }
+            var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+            //提交 Ajax 成功后，关闭当前弹层并重载表格
+            $.ajax({
+                url: "/adminshop/product/sortadd/action/add",
+                type: 'post',
+                data: field,
+                dataType: "json",
+                success: function (data) {
+                    if (data == 1) {
+                        layer.alert("添加成功", function () {
+                            parent.location.reload(); //重载加载页面
+                            parent.layer.close(index); //再执行关闭
+                        });
+                    } else {
+                        layer.alert("添加失败！");
+                        return false;
+                    }
+                },
+                error: function (e) {
+                    layer.alert("提交失败！");
+                    return false;
+                }
+            });
+
+        });
+    })
+</script>
+
+</body>
+</html>

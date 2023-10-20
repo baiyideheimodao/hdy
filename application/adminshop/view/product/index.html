@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{$location.title}</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="../../layuiadmin/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="../../layuiadmin/style/admin.css" media="all">
+    <link rel="stylesheet" href="../../layuiadmin/style/comm.css" media="all">
+    <link rel="stylesheet" type="text/css" media="all" href="../../layuiadmin/static/css/ztreestyle.css"/>
+    <link rel="stylesheet" type="text/css" media="all" href="../../layuiadmin/static/css/treeselect.css"/>
+    <style>
+        .none {
+            display: none !important;
+        }
+        #sortname{
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="layui-fluid">
+    <div class="layui-card">
+
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+
+            <div class="layui-form-item">
+
+                <form action="{:url('adminshop/product/')}" method="get" class="layui-form" style="float: left">
+
+                    <div class="layui-inline">
+                        <label class="layui-form-label">搜索：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" name="key" placeholder="请输入商品名称" autocomplete="off" class="layui-input" value="{$Request.get.key}">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <input value="{$Request.get.pid}" name="pid" id="pid" type="hidden">
+                        <input value="{$Request.get.proName}" name="proName" id="proName" type="hidden">
+                        <label class="layui-form-label">商品分类</label>
+                        <div class="layui-input-inline">
+                            <div class="treeSelect"></div>
+                        </div>
+                    </div>
+
+                    <div class="layui-inline">
+                        <button class="layui-btn" lay-submit>搜索</button>
+                        <a class="layui-btn layui-btn-primary" href="{:url('adminshop/product/')}">清除搜索</a>
+
+                    </div>
+                </form>
+                <div class="layui-inline" style="float: left;">
+
+                    <button class="layui-btn layuiadmin-btn-list" data-type="add" onclick="javascript:;"><a
+                            lay-href="/adminshop/product/add" style="color: #ffffff;">产品添加</a></button>
+                </div>
+
+            </div>
+        </div>
+        <div class="layui-tab-content" style="">
+            <div class="layui-tab-item layui-show">
+                <form action="testdsdd.php" method="post" id="contentForm" name="contentForm" class="layui-form"
+                      onkeydown="if(event.keyCode==13) return false;">
+                    <table class="layui-table">
+                        <thead>
+                        <tr>
+                            <th><input type="checkbox" class="checkbox" lay-ignore="" id="checkall" title="全选"
+                                       style="display: inline-block;"></th>
+                            <th>ID</th>
+                            <th>标题</th>
+                            <th>所属分类</th>
+                            <th>缩率图</th>
+                            <th>售价</th>
+                            <th>销量</th>
+                            <th>库存</th>
+                            <th>设置推荐</th>
+                            <th>是否下架</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {volist name='list' id='list' key="k"}
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="checkbox" class="checkbox checkitem" lay-ignore=""
+                                       name="list[]" value="{$list.id}" style="display: inline-block;">
+                            </td>
+                            <td>{$list.id}</td>
+                            <td>{$list.title}</td>
+                            <td>{$list.typeid|product_name}</td>
+                            <td align="center"><img src="{$list.image}"
+                                                    style="width: 80px;height:40px;border: 1px solid #ff0000;padding: 1px;">
+                            </td>
+                            <td>{$list.price}</td>
+                            <td>{$list.sales}</td>
+                            <td>{$list.kucun}</td>
+                            <td><input type="checkbox" name="close" {if $list.recommend== 1 }checked="ON" {/if}
+                                value="{$list.id}" lay-skin="switch" lay-filter="switchTest" lay-text="ON|OFF">
+                            </td>
+                            <td><input type="checkbox" name="close" {if $list.status== 0 }checked="ON" {/if}
+                                value="{$list.id}" lay-skin="switch" lay-filter="switchStatus" lay-text="ON|OFF">
+                            </td>
+                            <td>
+                                <a href="javascript:;" onclick="edit('pro',{$list.id})" class="layui-btn layui-btn-xs"
+                                   style="background: #2397d6;">编辑</a>
+                                <a href="javascript:;" onclick="del('pro',{$list.id})" class="layui-btn layui-btn-xs"
+                                   style="background: #14538a;">删除</a>
+                            </td>
+                        </tr>
+                        {/volist}
+                        </tbody>
+                    </table>
+                    <div class="layui-btn-group" style="padding: 0 0 0 0px">
+                        <button type="submit" name="submit" onclick="return setDelAction();"
+                                style="width: 100px; height: 38px; line-height: 38px; " class="layui-btn layui-btn-sm">
+                            批量删除
+                        </button>
+                    </div>
+                    <script>
+                        //全选删除
+                        function setDelAction() {
+                            var arr = [];
+                            $("input[name='checkbox']:checkbox:checked").each(function () {
+                                arr.push($(this).val());
+                            });
+                            zu = {};
+                            zu.arr = arr;
+                            if (arr.length == 0) {
+                                layer.msg('请选择删除的产品！');
+                                return false;
+                            } else {
+                                layer.alert("确定删除吗？", function () {
+                                    $.ajax({
+                                        url: "/adminshop/system/delAll/biao/pro",
+                                        type: 'POST',
+                                        data: zu,
+                                        dataType: "json",
+                                        success: function (data) {
+                                            if (data == 1) {
+                                                layer.alert("删除成功", function () {
+                                                    window.location.reload(); //重载加载页面
+                                                });
+                                            } else {
+                                                layer.alert("删除失败！", function () {
+                                                    parent.location.reload(); //重载加载页面
+
+                                                });
+                                            }
+                                        },
+                                        error: function (e) {
+                                            layer.alert("提交失败！");
+                                            return false;
+                                        }
+                                    });
+                                });
+                            }
+                            return false;
+                        }
+                    </script>
+
+                    <div class="page">
+                        {$page|raw}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../../layuiadmin/layui/layui.js"></script>
+<script src="../../layuiadmin/static/js/jquery.min.js"></script>
+<script src="../../layuiadmin/static/js/jquery.ztree.all.min.js"></script>
+<!--treeSelect-->
+<script src="../../layuiadmin/static/js/treeselect.js"></script>
+<script>
+    $(function () {
+        var keyName = '{$Request.get.proName}';
+        if(keyName){
+            var keyName = '{$Request.get.proName}';
+        }else{
+            var keyName = '请选择商品分类';
+        }
+        $.ajax({
+            url: '{:url('menuSortdata')}',
+            type: 'get',
+            data: {},
+            dataType: "json",
+            success: function (data) {
+                $(".treeSelect").treeSelect({
+                    data:data.data,
+                    inputId:"sortname",
+                    keyname:keyName
+                })
+            },
+            error: function (e) {
+                layer.alert("提交失败！");
+                return false;
+            }
+        });
+    });
+</script>
+<script>
+    layui.config({
+        base: '/layuiadmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'useradmin', 'table'], function () {
+        var $ = layui.$
+            , form = layui.form
+            , table = layui.table;
+
+        //监听搜索
+        form.on('submit(LAY-user-back-search)', function (data) {
+            var field = data.field;
+
+            //执行重载
+            table.reload('LAY-user-back-manage', {
+                where: field
+            });
+        });
+
+
+        //勾选方式选择全部
+        $("#checkall").on("click", function () {
+            if ($(this).prop("checked")) {
+                $(".checkitem:enabled").prop("checked", true);
+            } else {
+                $(".checkitem").prop("checked", false);
+            }
+
+        })
+        //监听搜索
+        form.on('submit(LAY-app-contlist-search)', function (data) {
+            var field = data.field;
+            console.log(field);
+            return false;
+            //执行重载
+            table.reload('LAY-app-content-list', {
+                where: field
+            });
+        });
+
+        //监听推荐开关
+        form.on('switch(switchTest)', function (data) {
+            $type = ((this.checked ? 'true' : 'false'));
+            $.ajax({
+                url: "/adminshop/product/tuijian/",
+                type: 'POST',
+                data: {id: data.value, type: $type},
+                dataType: "json",
+                success: function (data) {
+                    if (data == 1) {
+
+                    } else {
+
+                    }
+                },
+                error: function (e) {
+                    layer.alert("提交失败！");
+                    return false;
+                }
+            });
+        });
+
+        //商品上下架
+        form.on('switch(switchStatus)', function (data) {
+            $type = ((this.checked ? 'true' : 'false'));
+            $.ajax({
+                url: "/adminshop/product/xiajia/",
+                type: 'POST',
+                data: {id: data.value, type: $type},
+                dataType: "json",
+                success: function (data) {
+                    if (data == 1) {
+
+                    } else {
+
+                    }
+                },
+                error: function (e) {
+                    layer.alert("提交失败！");
+                    return false;
+                }
+            });
+        });
+
+    });
+</script>
+<script>
+    function edit(biao, id) {
+        //询问框
+        layer.open({
+            type: 2
+            , title: '信息修改'
+            , content: '/adminshop/product/edit/id/' + id
+            , maxmin: true
+            , area: ['100%', '100%']
+            , btn: ['确定', '取消']
+            , yes: function (index, layero) {
+                //点击确认触发 iframe 内容中的按钮提交
+                var submit = layero.find('iframe').contents().find("#layuiadmin-app-form-submit");
+                submit.click();
+            }
+        });
+    }
+
+
+    //删除
+    function del(biao, id) {
+        //询问框
+        layer.confirm('是否确认删除该商品', {
+            title: '提示'
+            , btn: ['确定', '取消'] //按钮
+        }, function () {
+            $.ajax({
+                url: "/adminshop/common/del/id/" + id+"/biao/"+biao,
+                type: 'POST',
+                dataType: "json",
+                success: function (data) {
+                    if (data == 1) {
+                        layer.alert("删除成功", function () {
+                            window.location.reload(); //重载加载页面
+                        });
+                    } else {
+                        layer.alert("删除失败！", function () {
+                            parent.location.reload(); //重载加载页面
+
+                        });
+                    }
+                },
+                error: function (e) {
+                    layer.alert("提交失败！")
+                }
+            });
+        });
+    }
+</script>
+</body>
+</html>
+

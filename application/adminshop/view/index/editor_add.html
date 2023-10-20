@@ -1,0 +1,28 @@
+<link href="__moban__/editor/um/themes/default/css/umeditor.css" type="text/css" rel="stylesheet">
+<script type="text/javascript" src="__moban__/editor/um/third-party/jquery.min.js"></script>
+<script type="text/javascript" src="__moban__/editor/um/third-party/template.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="__moban__/editor/um/umeditor.config.js"></script>
+<script type="text/javascript" charset="utf-8" src="__moban__/editor/um/um.min.js"></script>
+<script type="text/javascript" src="__moban__/editor/um/lang/zh-cn/zh-cn.js"></script>
+<textarea class='contents' style="display: none;"></textarea>
+<script type="text/plain" id="myEditor" style="width: 100%;"></script>
+<script>
+    $opt={toolbar:[
+            'source |',
+            'undo redo | bold italic underline strikethrough | superscript subscript | forecolor backcolor |',
+            'horizontal | insertorderedlist insertunorderedlist | link unlink | selectall cleardoc' ,
+            '| justifyleft justifycenter justifyright justifyjustify | paragraph fontfamily fontsize',
+            '| emotion image video',
+            ' | fullscreen'
+        ]};
+    var um = UM.getEditor('myEditor',$opt);
+
+    // 上面的UEditor对象准备好之后，下面才可以使用。
+
+    um.ready(function() {
+        um.setContent($(".contents").val(), false);
+    })
+    function getContent(){
+        return um.getContent();
+    }
+</script>

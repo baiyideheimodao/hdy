@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <link rel="stylesheet" href="/layuiadmin/layui/css/layui.css" media="all">
+  <link rel="stylesheet" href="/layuiadmin/style/admin.css" media="all">
+</head>
+<body>
+<div class="layui-fluid">
+  <div class="layui-card">
+    <div class="layui-form" lay-filter="layuiadmin-app-form-list" id="layuiadmin-app-form-list" style="padding: 20px 30px 0 0;">
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">类别</label>
+        <div class="layui-input-inline" >
+          <input type="radio" class="layui-input" name="type" value="首页" checked title="首页">
+          <input type="radio" class="layui-input" name="type" value="加盟"  title="加盟">
+        </div>
+      </div>
+
+
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">图片</label>
+        <input type="hidden" name="litpic" id="image" autocomplete="off" class="layui-input" value="">
+
+        <div class="layui-input-inline" style="width: inherit">
+          <img src="" style="max-width: 100px;" class="litpic">
+        </div>
+        <div class="layui-input-inline" >
+          <button class="layui-btn layui-btn-danger" id="btn_upload"><i class="layui-icon">&#xe640;</i>图片上传</button>
+        </div>
+      </div>
+
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">排序</label>
+        <div class="layui-input-inline" >
+          <input type="text" name="px" autocomplete="off" class="layui-input" value="" style="width:400px;">
+        </div>
+      </div>
+
+
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">显示</label>
+        <div class="layui-input-inline" >
+          <input type="radio" class="layui-input" name="status" value="1" checked title="是">
+          <input type="radio" class="layui-input" name="status" value="0"  title="否">
+        </div>
+      </div>
+      <div class="layui-form-item" style="margin-bottom:50px">
+        <button class="layui-btn" lay-filter="layuiadmin-app-form-submit" lay-submit style="margin: 20px 0 40px 110px;" >确认提交</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/layuiadmin/layui/layui.js"></script>
+<script src="/layuiadmin/list.js"></script>
+<script src="/layuiadmin/jquery.min.js"></script>
+<script>
+  layui.config({
+    base: '/layuiadmin/' //静态资源所在路径
+  }).extend({
+    index: 'lib/index' //主入口模块
+  }).use(['index', 'form', 'upload','laydate','tree'], function(){
+    var $ = layui.$
+            , tree = layui.tree
+            ,upload = layui.upload
+            ,laydate = layui.laydate
+            ,form = layui.form;
+    laydate.render({
+      elem: '#cjrq'
+    });
+
+    //普通图片上传
+    var uploadInst = upload.render({
+      elem: '#btn_upload'
+      ,url: '{:url("admin/Common/upload")}'
+      ,done: function(res){
+        $('.litpic').attr('src', res.filename);
+        $('#image').val(res.filename);
+      }
+      ,error: function(res){
+        console.log(res);
+        //请求异常回调
+      }
+    });
+    form.on('submit(layuiadmin-app-form-submit)', function(data){
+      savedata('/admin/xtsz/banneradd/action/save',data.field);
+    });
+
+  })
+</script>
+</body>
+</html>

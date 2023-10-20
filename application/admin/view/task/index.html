@@ -1,0 +1,175 @@
+{extend name="base" /}
+{block name="table_tpl"}
+<script type="text/html" id="state_tpl">
+    <input type="checkbox" name="state" lay-skin="switch" lay-text="已发布|待发布" lay-filter="state_tpl"
+           value="{{ d.state }}" data-json="{{ encodeURIComponent(JSON.stringify(d)) }}" {{ d.state == 1 ? 'checked' : '' }}>
+</script>
+<script type="text/html" id="type_tpl">
+    {{ d.type == 1 ? '<button class="layui-btn layui-btn-normal layui-btn-xs">是</button>' : '<button class="layui-btn layui-btn-danger layui-btn-xs">否</button>' }}
+</script>
+<script type="text/html" id="admin_tpl">
+    {{ d.admin_id == 1 ? '系统' : d.admin_name }}
+</script>
+{/block}
+{block name="search"}
+<div class="layui-inline">
+    <label class="layui-form-label">题型</label>
+    <div class="layui-input-block">
+        <select name="type"  lay-filter="filter-type" class="layui-select">
+            <option value=""></option>
+            <option value="1">记录题</option>
+            <option value="0">非记录题</option>
+        </select>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">任务群</label>
+    <div class="layui-input-block">
+        <select name="course_index" class="layui-select" lay-filter="course_index">
+            <option value=""></option>
+            {volist name="course_index_list" id="item"}
+            <option value="{$item.id}">{$item.name}</option>
+            {if condition="isset($item.children)"}
+            {volist name="$item.children" id="vo"}
+            <option value="{$vo.id}"> ---- {$vo.name}</option>
+            {/volist}
+            {/if}
+            {/volist}
+        </select>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">科目</label>
+    <div class="layui-input-block">
+        <select name="subject_id" class="layui-select" lay-filter="subject_id">
+            <option value=""></option>
+            {volist name="subject" id="item"}
+            <option value="{$item.id}">{$item.name}</option>
+            {/volist}
+        </select>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">版本</label>
+    <div class="layui-input-block">
+        <select name="version_id" class="layui-select" lay-filter="version_id">
+            <option value=""></option>
+        </select>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">项目</label>
+    <div class="layui-input-block">
+        <select name="maker_id" class="layui-select" lay-filter="maker_id">
+            <option value=""></option>
+        </select>
+    </div>
+</div>
+<div class="layui-inline">
+    <label class="layui-form-label">任务名称</label>
+    <div class="layui-input-block">
+        <input type="text" name="name" placeholder="请输入任务名称" autocomplete="off" class="layui-input">
+    </div>
+</div>
+<div class="layui-inline control-hide-2 control-show-1">
+    <label class="layui-form-label">页码</label>
+    <div class="layui-input-inline" style="width: 100px;">
+        <input type="number" value="0" name="page_num_start" placeholder="开始页" autocomplete="off" class="layui-input">
+    </div>
+    <div class="layui-form-mid">-</div>
+    <div class="layui-input-inline" style="width: 100px;">
+        <input type="number" value="0" name="page_num_end" placeholder="结束页" autocomplete="off" class="layui-input">
+    </div>
+</div>
+<div class="layui-inline control-hide-2 control-show-1">
+    <label class="layui-form-label">级别</label>
+    <div class="layui-input-block">
+        <select name="level" lay-filter="level">
+            <option value=""></option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+        </select>
+    </div>
+</div>
+{/block}
+{block name="table_js"}
+table.render({
+elem: '#news_type'
+,url: '/admin/task/index'
+,toolbar: '#top_tool_bar'
+,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+,title: ''
+,method: 'post'
+,cols: [[
+{type: 'checkbox', fixed: 'left'},
+{field:'id', title:'ID', fixed: 'left', unresize: true, sort: true}
+,{field:'type', title:'是否记录题', templet: '#type_tpl'}
+,{field:'name', width:'30%',title:'任务名称'}
+,{field:'sub_name', title:'任务群'}
+,{field:'subject_name', title:'学科'}
+,{field:'version_name', title:'版本'}
+,{field:'grade_name', title:'年级'}
+,{field:'level', title:'等级'}
+,{field:'state', title:'状态', sort: true, templet: '#state_tpl'}
+,{field:'create_time', title:'创建日期', sort: true}
+<!--,{field:'admin_name', title:'创建人', sort: true, templet: '#admin_tpl'}-->
+,{fixed: 'right', title:'操作', toolbar: '#right_tool_bar', width:280}
+]]
+,page: true
+});
+var version = {:json_encode($version, JSON_UNESCAPED_UNICODE)};
+var maker = {:json_encode($maker,JSON_UNESCAPED_UNICODE)};
+//监听操作
+form.on('switch(state_tpl)', function(obj){
+var json = JSON.parse(decodeURIComponent($(this).data('json')));
+json = table.clearCacheKey(json);
+$.ajax({
+method:'post',
+type:'json',
+url:'/admin/task/edit',
+data:{id:json.id,state:(parseInt(json.state) === 1?0:1)},
+success:function (res) {
+layer.msg(res.msg);
+}
+})
+});
+$('.control-hide-1').hide();
+$('.control-hide-2').hide();
+form.on('select(filter-type)',function(data){
+$('.control-hide-1').hide();
+$('.control-hide-2').hide();
+if(data.value == 0){
+$('.control-show-1').show();
+}else if(data.value == 2){
+$('.control-show-2').show();
+}
+});
+form.on('select(subject_id)',function (data) {
+var html = `<option value=""></option>`;
+$.each(version,function (key,value) {
+if(value.subject_id == data.value){
+html += `<option value="`+value.id+`">`+value.name+`</option>`;
+}
+});
+$('select[name=version_id]').html(html);
+form.render('select');
+});
+form.on('select(version_id)', function(data){
+var html = `<option value=""></option>`;
+$.each(maker,function (key,value) {
+if(value.version_id == data.value){
+html += `<option value="`+value.id+`">`+value.name+`</option>`;
+}
+});
+$('select[name=maker_id]').html(html);
+form.render('select');
+});
+{/block}
